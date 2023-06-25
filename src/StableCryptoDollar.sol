@@ -6,8 +6,8 @@ import {ERC20Burnable, ERC20} from "@openzeppelin/contracts/token/ERC20/extensio
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 /** 
- * @title DecentralizedStableCoin
- * @author Patrick Collins
+ * @title StableCryptoDollar
+ * @author Thomas Heim
  * @notice Collateral: Exogenous
  * @notice Minting (Stability Mechanism): Decentralized (Algorithmic)
  * @notice Value (Relative Stability): Anchored (Pegged to USD)
@@ -15,12 +15,12 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
  *
  * @dev This is the contract meant to be owned by DSCEngine. It is an ERC20 token that can be minted and burned by the DSCEngine smart contract.
  */
-contract DecentralizedStableCoin is ERC20Burnable, Ownable {
-    error DecentralizedStableCoin__AmountMustBeMoreThanZero();
-    error DecentralizedStableCoin__BurnAmountExceedsBalance();
-    error DecentralizedStableCoin__NotZeroAddress();
+contract StableCryptoDollar is ERC20Burnable, Ownable {
+    error StableCryptoDollar__AmountMustBeMoreThanZero();
+    error StableCryptoDollar__BurnAmountExceedsBalance();
+    error StableCryptoDollar_NotZeroAddress();
 
-    constructor() ERC20("DecentralizedStableCoin", "DSC") {}
+    constructor() ERC20("StableCryptoDollar", "SCD") {}
 
     /**
      * @notice Burns a specific amount of tokens owned by the contract owner.
@@ -30,10 +30,10 @@ contract DecentralizedStableCoin is ERC20Burnable, Ownable {
     function burn(uint256 _amount) public override onlyOwner {
         uint256 balance = balanceOf(msg.sender);
         if (_amount <= 0) {
-            revert DecentralizedStableCoin__AmountMustBeMoreThanZero();
+            revert StableCryptoDollar__AmountMustBeMoreThanZero();
         }
         if (balance < _amount) {
-            revert DecentralizedStableCoin__BurnAmountExceedsBalance();
+            revert StableCryptoDollar__BurnAmountExceedsBalance();
         }
         super.burn(_amount);
     }
@@ -47,10 +47,10 @@ contract DecentralizedStableCoin is ERC20Burnable, Ownable {
      */
     function mint(address _to, uint256 _amount) external onlyOwner returns (bool) {
         if (_to == address(0)) {
-            revert DecentralizedStableCoin__NotZeroAddress();
+            revert StableCryptoDollar_NotZeroAddress();
         }
         if (_amount <= 0) {
-            revert DecentralizedStableCoin__AmountMustBeMoreThanZero();
+            revert StableCryptoDollar__AmountMustBeMoreThanZero();
         }
         _mint(_to, _amount);
         return true;
