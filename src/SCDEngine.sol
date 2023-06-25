@@ -28,4 +28,6 @@ contract SCDEngine {
     function redeemCollateralForSCD() external {}
 
     function brunSCD() extenral {}
+
+    function liquidate() external {}
 }
