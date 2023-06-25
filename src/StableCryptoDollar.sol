@@ -41,7 +41,7 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 contract StableCryptoDollar is ERC20Burnable, Ownable {
     error StableCryptoDollar__MustBeMoreThanZero();
     error StableCryptoDollar__BurnAmountExeedsBalance();
-
+    error StableCryptoDollar__NotZeroAddress();
 
     constructor() ERC20("StableCryptoDollar", "SCD") {}
 
@@ -49,12 +49,20 @@ contract StableCryptoDollar is ERC20Burnable, Ownable {
         uint256 balance = balanceOf(msg.sender);
         if (_amount <= 0) {
             revert StableCryptoDollar__MustBeMoreThanZero();
-        }
-        else if (_amount > balance) {
+        } if (balance < _amount) {
             revert StableCryptoDollar__BurnAmountExeedsBalance();
         }
-        else {
-            super.burn(_amount);
+        super.burn(_amount);
+    }
+
+    function mint(address _to, uint256 _amount) external onlyOwner returns(bool){
+        if(_to == address(0)){
+            revert StableCryptoDollar__NotZeroAddress();
         }
+        if (_amount <= 0) {
+            revert StableCryptoDollar__MustBeMoreThanZero();
+        }
+        _mint(_to, _amount);
+        return true;
     }
 }
