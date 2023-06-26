@@ -31,7 +31,7 @@ contract SCDEngine is ReentrancyGuard {
     error SCDEngine__TokenAddressAndPriceFeedAddressMustBeSameLength();
     error SCDEngine__NotAllowedToken();
     error SCDEngine__TransferFromFailed();
-    error SCDEngine__BreakHealthFactor ();
+    error SCDEngine__BreakHealthFactor (uint256 healthFactor);
     error SCDEngine__MintFailed();
 
     //////////////////////
