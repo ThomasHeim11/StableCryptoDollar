@@ -37,6 +37,7 @@ contract SCDEngine is ReentrancyGuard {
     mapping(address token => address s_priceFeed) private s_priceFeeds;
     mapping(address user => mapping(address token => uint256)) private s_collateralBalances;
     mapping(address user => uint256 amountSCDEMinted) private s_SCDMinted;
+    address[] private s_collateralTokens;
 
     StableCryptoDollar private immutable i_SCDE;
 
@@ -71,6 +72,7 @@ contract SCDEngine is ReentrancyGuard {
         }
         for (uint256 i = 0; i < tokenAddress.length; i++) {
             s_priceFeeds[tokenAddress[i]] = priceFeedAddresses[i];
+            s_collateralTokens.push(tokenAddress[i]);
         }
         i_SCDE = StableCryptoDollar(SCDAddress);
     }
@@ -132,4 +134,22 @@ contract SCDEngine is ReentrancyGuard {
 
 
     function _revertIfHealthFactorIsBroken(address user) private view {}
+
+
+
+    ////////////////////////////////////////
+    // Public & External View Functions //
+    ///////////////////////////////////////
+    function getAccountCollateralValue(address user) public view returns(uint256){
+        for(uint256 i = =; i<s_collateralTokens.length; i++) {
+            address token = s_collateralTokens[i];
+            uint256 collateralBalance = s_collateralBalances[user][token];
+            totalCollateralValueInUsd += collateralBalance * price;
+        }
+
+    }
+
+    function getUsdValue(address token, uint256 amount) public view returns(uint256){
+        
+    }
 }
