@@ -36,6 +36,8 @@ contract SCDEngine is ReentrancyGuard {
     //////////////////////
     uint256 private constant ADITIONAL_FED_PRECISION = 1e10
     uint256 private constant PRECISION = 1e18;
+    uint256 private constant LIQUIDATION_THRESHOLD = 50;
+    uint256 private constant LIQUIDATION_PRECISION = 100;
 
 
 
@@ -135,10 +137,14 @@ contract SCDEngine is ReentrancyGuard {
 
     function _healthFactor(address user) private view returns (uint256) {
         (uint256 totalSCDMinted, uitn256 collateralValueInUsd) = _getAccountInformation(user);
+        uint256 collateralAdjustedForThreshold = (collateralValueInUsd * LIQUIDATION_THRESHOLD) /LIQUIDATION_PRECISION;
+        
     }
 
 
-    function _revertIfHealthFactorIsBroken(address user) private view {}
+    function _revertIfHealthFactorIsBroken(address user) private view {
+
+    }
 
 
 
