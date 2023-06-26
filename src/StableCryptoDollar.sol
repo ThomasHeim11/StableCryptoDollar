@@ -5,7 +5,7 @@ pragma solidity 0.8.19;
 import {ERC20Burnable, ERC20} from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
-/** 
+/**
  * @title StableCryptoDollar
  * @author Thomas Heim
  * @notice Collateral: Exogenous
