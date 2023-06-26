@@ -34,7 +34,7 @@ contract SCDEngine is ReentrancyGuard {
     //////////////////////
     // State Variables  //
     //////////////////////
-    uint256 private constant ADITIONAL_FED_PRECISION = 1e10
+    uint256 private constant ADITIONAL_FED_PRECISION = 1e10;
     uint256 private constant PRECISION = 1e18;
     uint256 private constant LIQUIDATION_THRESHOLD = 50;
     uint256 private constant LIQUIDATION_PRECISION = 100;
@@ -105,7 +105,7 @@ contract SCDEngine is ReentrancyGuard {
         }
     }
 
-    function redeemCollateralForSCD external {}
+    function redeemCollateralForSCD() external {}
 
     function redeemColleteral() external {}
 
@@ -151,11 +151,11 @@ contract SCDEngine is ReentrancyGuard {
     ////////////////////////////////////////
     // Public & External View Functions //
     ///////////////////////////////////////
-    function getAccountCollateralValue(address user) public view returns(uint256, totalCollateralValueInUsd){
-        for(uint256 i = =; i<s_collateralTokens.length; i++) {
-            address token = s_collateralTokens[i];
-            uint256 collateralBalance = s_collateralBalances[user][token];
-            totalCollateralValueInUsd += getUsdValue(token, amount);
+    function getAccountCollateralValue(address user) public view returns (uint256 totalCollateralValueInUsd) {
+        for (uint256 index = 0; index < s_collateralTokens.length; index++) {
+            address token = s_collateralTokens[index];
+            uint256 amount = s_collateralDeposited[user][token];
+            totalCollateralValueInUsd += _getUsdValue(token, amount);
         }
         return totalCollateralValueInUsd;
 
