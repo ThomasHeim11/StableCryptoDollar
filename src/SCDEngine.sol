@@ -145,12 +145,13 @@ contract SCDEngine is ReentrancyGuard {
     ////////////////////////////////////////
     // Public & External View Functions //
     ///////////////////////////////////////
-    function getAccountCollateralValue(address user) public view returns(uint256){
+    function getAccountCollateralValue(address user) public view returns(uint256, totalCollateralValueInUsd){
         for(uint256 i = =; i<s_collateralTokens.length; i++) {
             address token = s_collateralTokens[i];
             uint256 collateralBalance = s_collateralBalances[user][token];
-            totalCollateralValueInUsd += collateralBalance * price;
+            totalCollateralValueInUsd += getUsdValue(token, amount);
         }
+        return totalCollateralValueInUsd;
 
     }
 
