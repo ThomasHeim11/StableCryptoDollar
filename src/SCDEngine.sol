@@ -34,6 +34,11 @@ contract SCDEngine is ReentrancyGuard {
     //////////////////////
     // State Variables  //
     //////////////////////
+    uint256 private constant ADITIONAL_FED_PRECISION = 1e10
+    uint256 private constant PRECISION = 1e18;
+
+
+
     mapping(address token => address s_priceFeed) private s_priceFeeds;
     mapping(address user => mapping(address token => uint256)) private s_collateralBalances;
     mapping(address user => uint256 amountSCDEMinted) private s_SCDMinted;
@@ -150,6 +155,9 @@ contract SCDEngine is ReentrancyGuard {
     }
 
     function getUsdValue(address token, uint256 amount) public view returns(uint256){
-        
+        AggregatorV3Interface priceFeed = AggregatorV3Interface(s_priceFeeds[token]);
+        (,int256 price,,,) = priceFeed.latestRoundData();
+        return ((uint256(price) * ADITIONAL_FED_PRECISION) * amount / PRECISION;
+
     }
 }
