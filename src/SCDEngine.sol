@@ -23,9 +23,36 @@ It draws inspiration from the MakerDAO DSS system.
 */
 
 contract SCDEngine {
+    ///////////////////
+    // Errors     //
+    ///////////////////
+    error SCDEngine__NeedsMoreThanZero();
+
+    ///////////////////
+    // Modifiers     //
+    ///////////////////
+modifier moreThanZero(uint256 amount) {
+    if(amount == 0) {
+        revert SCDEngine__NeedsMoreThanZero();
+    }
+    
+}
+
+
     function depositCollateralAndMintSCD() external {}
 
+    function depositCollateral(
+        address tokenCollateralAddress, 
+        uint256 amountCollateral
+        ) external moreThanZero() {
+
+        }
+
     function redeemCollateralForSCD() external {}
+
+    function redeemColleteral() external {}
+    
+    function mint SCD() external {}
 
     function brunSCD() extenral {}
 
