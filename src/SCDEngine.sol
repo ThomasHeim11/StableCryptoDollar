@@ -31,7 +31,7 @@ contract SCDEngine is ReentrancyGuard {
     error SCDEngine__TokenAddressAndPriceFeedAddressMustBeSameLength();
     error SCDEngine__NotAllowedToken();
     error SCDEngine__TransferFromFailed();
-    error SCDEngine__BreakHealthFactor();
+    error SCDEngine__BreakHealthFactor ();
     error SCDEngine__MintFailed();
 
     //////////////////////
@@ -85,7 +85,7 @@ contract SCDEngine is ReentrancyGuard {
         address[] memory priceFeedAddresses,
         address SCDAddress
     ) {
-        if (tokenAddresses.lenght != priceFeedAddresses.length) {
+        if (tokenAddresses.length!= priceFeedAddresses.length) {
             revert SCDEngine__TokenAddressAndPriceFeedAddressMustBeSameLength();
         }
         for (uint256 i = 0; i < tokenAddresses.length; i++) {
