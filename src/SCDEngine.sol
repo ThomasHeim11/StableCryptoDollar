@@ -81,16 +81,16 @@ contract SCDEngine is ReentrancyGuard {
     // Funtions     //
     ///////////////////
     constructor(
-        address[] memory tokenAddress,
+        address[] memory tokenAddresses,
         address[] memory priceFeedAddresses,
         address SCDAddress
     ) {
-        if (tokenAddress.lenght != priceFeedAddresses.length) {
+        if (tokenAddresses.lenght != priceFeedAddresses.length) {
             revert SCDEngine__TokenAddressAndPriceFeedAddressMustBeSameLength();
         }
-        for (uint256 i = 0; i < tokenAddress.length; i++) {
-            s_priceFeeds[tokenAddress[i]] = priceFeedAddresses[i];
-            s_collateralTokens.push(tokenAddress[i]);
+        for (uint256 i = 0; i < tokenAddresses.length; i++) {
+            s_priceFeeds[tokenAddresses[i]] = priceFeedAddresses[i];
+            s_collateralTokens.push(tokenAddresses[i]);
         }
         i_SCDE = StableCryptoDollar(SCDAddress);
     }
