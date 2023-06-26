@@ -115,7 +115,20 @@ contract SCDEngine is ReentrancyGuard {
     ////////////////////////////////////////
     // Private & Internal View Functions //
     ///////////////////////////////////////
-    function _healthFactor(address user) private view returns (uint256) {}
+
+    function _getAccountInformation(address user)
+        private
+        view
+        returns (uint256 totalSCDMinted, uint256 collateralValueInUsd) 
+        {
+            totalSCDMinted = s_SCDMinted[user];
+            collateralValueInUsd = getAccountCollateralValue(user);
+        }
+
+
+    function _healthFactor(address user) private view returns (uint256) {
+        (uint256 totalSCDMinted, uitn256 collateralValueInUsd) = _getAccountInformation(user);
+    }
 
 
     function _revertIfHealthFactorIsBroken(address user) private view {}
