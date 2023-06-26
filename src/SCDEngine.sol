@@ -30,6 +30,8 @@ contract SCDEngine is ReentrancyGuard {
     error SCDEngine__TokenAddressAndPriceFeedAddressMustBeSameLength();
     error SCDEngine__NotAllowedToken();
     error SCDEngine__TransferFromFailed();
+    error SCDEngine__BreakHealthFactor();
+    error SCDEngine__MintFailed();
 
     //////////////////////
     // State Variables  //
@@ -38,6 +40,7 @@ contract SCDEngine is ReentrancyGuard {
     uint256 private constant PRECISION = 1e18;
     uint256 private constant LIQUIDATION_THRESHOLD = 50;
     uint256 private constant LIQUIDATION_PRECISION = 100;
+    uint256 private constant MIN_HELATH_FACTOR = 1; 
 
 
 
@@ -112,6 +115,10 @@ contract SCDEngine is ReentrancyGuard {
     function mintSCD(uint256 amountDscToMint) external moreThanZero(amountSCDToMint) nonReentrant {
         s_SCDMinted[msg.sender] += amountSCDToMint;
         revertIfHealthFactorIsBroken(msg.sender);
+        bool minted = i_SCDE.mint(msg.sender, amountSCDToMint);
+        if(!minted) {
+            revert SCDEngine__MintFailed();
+        }
 
     }
 
@@ -138,11 +145,16 @@ contract SCDEngine is ReentrancyGuard {
     function _healthFactor(address user) private view returns (uint256) {
         (uint256 totalSCDMinted, uitn256 collateralValueInUsd) = _getAccountInformation(user);
         uint256 collateralAdjustedForThreshold = (collateralValueInUsd * LIQUIDATION_THRESHOLD) /LIQUIDATION_PRECISION;
+        return (collateralAdjustedForThreshold * PRECISION) / totalSCDMinted;
         
     }
 
 
     function _revertIfHealthFactorIsBroken(address user) private view {
+        uint256 userHealthFactor = _healthFactor(user);
+        if(userHealthFactor < MIN_HEALTH_FACTOR) {
+            revert SCDEngine__BreakHealthFactor(userHealthFactor);
+        }
 
     }
 
@@ -164,7 +176,7 @@ contract SCDEngine is ReentrancyGuard {
     function getUsdValue(address token, uint256 amount) public view returns(uint256){
         AggregatorV3Interface priceFeed = AggregatorV3Interface(s_priceFeeds[token]);
         (,int256 price,,,) = priceFeed.latestRoundData();
-        return ((uint256(price) * ADITIONAL_FED_PRECISION) * amount / PRECISION;
+        return ((uint256(price) * ADITIONAL_FED_PRECISION) * amount / PRECISION);
 
     }
 }
