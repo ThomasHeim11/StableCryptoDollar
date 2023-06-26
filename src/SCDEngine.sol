@@ -83,7 +83,17 @@ contract SCDEngine {
         moreThanZero(amountCollateral)
     {}
 
-    function redeemCollateralForSCD() external {}
+    function redeemCollateralForSCD(
+        address tokenCollateralAddress,
+        uint256 amountCollateral
+    ) 
+    
+    external 
+    moreThanZero(amountCollateral)
+    isAllowedToken (tokenCollateralAddress) 
+    nonReentrant
+    
+    {}
 
     function redeemColleteral() external {}
 
