@@ -36,6 +36,7 @@ contract SCDEngine is ReentrancyGuard {
     //////////////////////
     mapping(address token => address s_priceFeed) private s_priceFeeds;
     mapping(address user => mapping(address token => uint256)) private s_collateralBalances;
+    mapping(address user => uint256 amountSCDEMinted) private s_SCDMinted;
 
     StableCryptoDollar private immutable i_SCDE;
 
@@ -99,11 +100,23 @@ contract SCDEngine is ReentrancyGuard {
 
     function redeemColleteral() external {}
 
-    function mintSCD() external {}
+    function mintSCD(uint256 amountDscToMint) external moreThanZero(amountSCDToMint) nonReentrant {
+        s_SCDMinted[msg.sender] += amountSCDToMint;
+        revertIfHealthFactorIsBroken(msg.sender);
+
+    }
 
     function brunSCD() extenral {}
 
     function liquidate() external {}
 
     function getHelathFactor() external view {}
+
+    ////////////////////////////////////////
+    // Private & Internal View Functions //
+    ///////////////////////////////////////
+    function _healthFactor(address user) private view returns (uint256) {}
+
+
+    function _revertIfHealthFactorIsBroken(address user) private view {}
 }
