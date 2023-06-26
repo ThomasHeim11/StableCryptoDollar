@@ -45,7 +45,7 @@ contract SCDEngine is ReentrancyGuard {
 
     mapping(address token => address s_priceFeed) private s_priceFeeds;
     mapping(address user => mapping(address token => uint256))
-        private s_collateralBalances;
+        private s_collateralDeposited;
     mapping(address user => uint256 amountSCDEMinted) private s_SCDMinted;
     address[] private s_collateralTokens;
 
@@ -71,7 +71,7 @@ contract SCDEngine is ReentrancyGuard {
     }
 
     modifier isAllowedToken(address token) {
-        if (s_priceFeed[token] == address(0)) {
+        if (s_priceFeeds[token] == address(0)) {
             revert SCDEngine__NotAllowedToken();
         }
         _;
@@ -110,7 +110,7 @@ contract SCDEngine is ReentrancyGuard {
         isAllowedToken(tokenCollateralAddress)
         nonReentrant
     {
-        s_collateralBalances[mag.sender][
+        s_collateralDeposited[msg.sender][
             tokenCollateralAddress
         ] += amountCollateral;
         emit CollateralDeposited(
@@ -118,7 +118,7 @@ contract SCDEngine is ReentrancyGuard {
             tokenCollateralAddress,
             amountCollateral
         );
-        bool succes = IERC2(tokenCollateralAddress).transferFrom(
+        bool succes = IERC20(tokenCollateralAddress).transferFrom(
             msg.sender,
             address(this),
             amountCollateral
@@ -133,16 +133,17 @@ contract SCDEngine is ReentrancyGuard {
     function redeemColleteral() external {}
 
     function mintSCD(
-        uint256 amountDscToMint
-    ) external moreThanZero(amountSCDToMint) nonReentrant {
-        s_SCDMinted[msg.sender] += amountSCDToMint;
-        revertIfHealthFactorIsBroken(msg.sender);
-        bool minted = i_SCDE.mint(msg.sender, amountSCDToMint);
-        
-        if (!minted) {
-            revert SCDEngine__MintFailed();
-        }
+    uint256 amountSCDToMint // Change this line
+) external moreThanZero(amountSCDToMint) nonReentrant {
+    s_SCDMinted[msg.sender] += amountSCDToMint;
+    _revertIfHealthFactorIsBroken(msg.sender);
+    bool minted = i_SCDE.mint(msg.sender, amountSCDToMint);
+    
+    if (!minted) {
+        revert SCDEngine__MintFailed();
     }
+}
+
 
     function burnSCD() external {}
 
@@ -168,7 +169,7 @@ contract SCDEngine is ReentrancyGuard {
     function _healthFactor(address user) private view returns (uint256) {
         (
             uint256 totalSCDMinted,
-            uitn256 collateralValueInUsd
+            uint256 collateralValueInUsd
         ) = _getAccountInformation(user);
         uint256 collateralAdjustedForThreshold = (collateralValueInUsd *
             LIQUIDATION_THRESHOLD) / LIQUIDATION_PRECISION;
@@ -177,7 +178,7 @@ contract SCDEngine is ReentrancyGuard {
 
     function _revertIfHealthFactorIsBroken(address user) private view {
         uint256 userHealthFactor = _healthFactor(user);
-        if (userHealthFactor < MIN_HEALTH_FACTOR) {
+        if (userHealthFactor < MIN_HELATH_FACTOR) {
             revert SCDEngine__BreakHealthFactor(userHealthFactor);
         }
     }
@@ -191,7 +192,7 @@ contract SCDEngine is ReentrancyGuard {
         for (uint256 index = 0; index < s_collateralTokens.length; index++) {
             address token = s_collateralTokens[index];
             uint256 amount = s_collateralDeposited[user][token];
-            totalCollateralValueInUsd += _getUsdValue(token, amount);
+            totalCollateralValueInUsd += getUsdValue(token, amount);
         }
         return totalCollateralValueInUsd;
     }
