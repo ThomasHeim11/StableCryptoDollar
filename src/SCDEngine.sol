@@ -176,7 +176,7 @@ contract SCDEngine is ReentrancyGuard {
         return (collateralAdjustedForThreshold * PRECISION) / totalSCDMinted;
     }
 
-    function _revertIfHealthFactorIsBroken(address user) private view {
+    function _revertIfHealthFactorIsBroken(address user) internal view {
         uint256 userHealthFactor = _healthFactor(user);
         if (userHealthFactor < MIN_HELATH_FACTOR) {
             revert SCDEngine__BreakHealthFactor(userHealthFactor);
