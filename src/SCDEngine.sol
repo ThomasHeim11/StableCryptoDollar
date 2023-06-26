@@ -30,4 +30,6 @@ contract SCDEngine {
     function brunSCD() extenral {}
 
     function liquidate() external {}
+
+    function getHelathFactor() external view {}
 }
