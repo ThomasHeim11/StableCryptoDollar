@@ -10,7 +10,7 @@ contract DeploySCD is Script {
     function run() external returns (StableCryptoDollar, SCDEngine) {
         vm.startBroadcast();
         StableCryptoDollar SCD = new StableCryptoDollar();
-
+        // SCDEngine engine = new SCDEngine;
         vm.stopBroadcast();
         
     }
