@@ -8,6 +8,8 @@ import {SCDEngine} from "../src/SCDEngine.sol";
 
 contract DeploySCD is Script {
     function run() external returns (StableCryptoDollar, SCDEngine) {
+        vm.startBroadcast();
+        vm.stopBroadcast();
         
     }
 }
