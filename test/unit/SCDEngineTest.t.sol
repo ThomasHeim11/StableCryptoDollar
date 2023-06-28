@@ -19,11 +19,14 @@ contract SCDEngineTest is Test {
 
     address public USER = makeAddr("user");
     uint256 public constant AMOUNT_COLLATERAL = 10 ether;
+    uint256 public constant STARTING_ERC20_BALANCE = 10 ether;
 
     function setUp() public {
         deployer = new DeploySCD();
         (scd, scde, config) = deployer.run();
         (ethUsdPriceFeed, , weth, , ) = config.activeNetworkConfig();
+
+        ERC20Mock(weth).mint(USER,STARTING_ERC20_BALANCE);
     }
 
     //////////////////////
@@ -43,11 +46,12 @@ contract SCDEngineTest is Test {
 
     function testRevertsIfCollateralZero() public {
         vm.startPrank(USER);
-        ERC20Mock(weth).approve(address(address(scde)), AMOUNT_COLLATERAL);
+        ERC20Mock(weth).approve(address(scd), AMOUNT_COLLATERAL);
 
-        vm.expectRevert(SCDEngine.SCDEngine__NeedsMoreThanZero);
+        vm.expectRevert(SCDEngine.SCDEngine__NeedsMoreThanZero.selector);
         scde.depositCollateral(weth, 0);
         vm.stopPrank();
+
 
     }
     
