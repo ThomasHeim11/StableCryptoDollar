@@ -55,6 +55,7 @@ contract SCDEngine is ReentrancyGuard {
     // Events           //
     //////////////////////
     event CollateralDeposited(address indexed user, address indexed token, uint256 indexed amount);
+    event CollateralReedmed(address indexed user, address indexed token, uint256 indexed amount);
 
     ///////////////////
     // Modifiers     //
@@ -118,7 +119,15 @@ contract SCDEngine is ReentrancyGuard {
         external
         moreThanZero(amountCollateral)
         nonReentrant
-    {}
+    {
+        s_collateralDeposited[msg.sender][tokenCollateralAddress] -= amountCollateral;
+        emit CollateralReedmed(msg.sender,tokenCollateralAddress, amountCollateral);
+        bool succes = IERC20(tokenCollateralAddress).transfer(msg.sender, amountCollateral);
+        if(!succes) {
+            revert SCDEngine__TransferFromFailed();
+        }
+        _revertIfHealthFactorIsBroken(msg.sender);
+    }
 
     function redeemColleteral() external {}
 
