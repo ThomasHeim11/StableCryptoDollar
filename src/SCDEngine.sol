@@ -2,7 +2,8 @@
 
 pragma solidity 0.8.19;
 
-import {AggregatorV3Interface} from "lib/chainlink-brownie-contracts/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
+import {AggregatorV3Interface} from
+    "lib/chainlink-brownie-contracts/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -31,7 +32,7 @@ contract SCDEngine is ReentrancyGuard {
     error SCDEngine__TokenAddressAndPriceFeedAddressMustBeSameLength();
     error SCDEngine__NotAllowedToken();
     error SCDEngine__TransferFromFailed();
-    error SCDEngine__BreakHealthFactor (uint256 healthFactor);
+    error SCDEngine__BreakHealthFactor(uint256 healthFactor);
     error SCDEngine__MintFailed();
 
     //////////////////////
@@ -44,8 +45,7 @@ contract SCDEngine is ReentrancyGuard {
     uint256 private constant MIN_HELATH_FACTOR = 1;
 
     mapping(address token => address s_priceFeed) private s_priceFeeds;
-    mapping(address user => mapping(address token => uint256))
-        private s_collateralDeposited;
+    mapping(address user => mapping(address token => uint256)) private s_collateralDeposited;
     mapping(address user => uint256 amountSCDEMinted) private s_SCDMinted;
     address[] private s_collateralTokens;
 
@@ -54,11 +54,7 @@ contract SCDEngine is ReentrancyGuard {
     //////////////////////
     // Events           //
     //////////////////////
-    event CollateralDeposited(
-        address indexed user,
-        address indexed token,
-        uint256 indexed amount
-    );
+    event CollateralDeposited(address indexed user, address indexed token, uint256 indexed amount);
 
     ///////////////////
     // Modifiers     //
@@ -80,12 +76,8 @@ contract SCDEngine is ReentrancyGuard {
     ///////////////////
     // Funtions     //
     ///////////////////
-    constructor(
-        address[] memory tokenAddresses,
-        address[] memory priceFeedAddresses,
-        address SCDAddress
-    ) {
-        if (tokenAddresses.length!= priceFeedAddresses.length) {
+    constructor(address[] memory tokenAddresses, address[] memory priceFeedAddresses, address SCDAddress) {
+        if (tokenAddresses.length != priceFeedAddresses.length) {
             revert SCDEngine__TokenAddressAndPriceFeedAddressMustBeSameLength();
         }
         for (uint256 i = 0; i < tokenAddresses.length; i++) {
@@ -99,55 +91,48 @@ contract SCDEngine is ReentrancyGuard {
     // External Functions //
     ///////////////////////
 
-    function depositCollateralAndMintSCD(address tokenCollateralAddress, uint256 amountCollateral, uint256 amountScdToMint) external {
+    function depositCollateralAndMintSCD(
+        address tokenCollateralAddress,
+        uint256 amountCollateral,
+        uint256 amountScdToMint
+    ) external {
         depositCollateral(tokenCollateralAddress, amountCollateral);
         mintSCD(amountScdToMint);
-        
     }
 
-    function depositCollateral(
-        address tokenCollateralAddress,
-        uint256 amountCollateral
-    )
+    function depositCollateral(address tokenCollateralAddress, uint256 amountCollateral)
         public
         moreThanZero(amountCollateral)
         isAllowedToken(tokenCollateralAddress)
         nonReentrant
     {
-        s_collateralDeposited[msg.sender][
-            tokenCollateralAddress
-        ] += amountCollateral;
-        emit CollateralDeposited(
-            msg.sender,
-            tokenCollateralAddress,
-            amountCollateral
-        );
-        bool succes = IERC20(tokenCollateralAddress).transferFrom(
-            msg.sender,
-            address(this),
-            amountCollateral
-        );
+        s_collateralDeposited[msg.sender][tokenCollateralAddress] += amountCollateral;
+        emit CollateralDeposited(msg.sender, tokenCollateralAddress, amountCollateral);
+        bool succes = IERC20(tokenCollateralAddress).transferFrom(msg.sender, address(this), amountCollateral);
         if (!succes) {
             revert SCDEngine__TransferFromFailed();
         }
     }
 
-    function redeemCollateralForSCD() external {}
+    function redeemCollateralForSCD(address tokenCollateralAddress, uint256 amountCollateral)
+        external
+        moreThanZero(amountCollateral)
+        nonReentrant
+    {}
 
     function redeemColleteral() external {}
 
     function mintSCD(
-    uint256 amountSCDToMint // Change this line
-) public moreThanZero(amountSCDToMint) nonReentrant {
-    s_SCDMinted[msg.sender] += amountSCDToMint;
-    _revertIfHealthFactorIsBroken(msg.sender);
-    bool minted = i_SCDE.mint(msg.sender, amountSCDToMint);
-    
-    if (!minted) {
-        revert SCDEngine__MintFailed();
-    }
-}
+        uint256 amountSCDToMint // Change this line
+    ) public moreThanZero(amountSCDToMint) nonReentrant {
+        s_SCDMinted[msg.sender] += amountSCDToMint;
+        _revertIfHealthFactorIsBroken(msg.sender);
+        bool minted = i_SCDE.mint(msg.sender, amountSCDToMint);
 
+        if (!minted) {
+            revert SCDEngine__MintFailed();
+        }
+    }
 
     function burnSCD() external {}
 
@@ -159,9 +144,7 @@ contract SCDEngine is ReentrancyGuard {
     // Private & Internal View Functions //
     ///////////////////////////////////////
 
-    function _getAccountInformation(
-        address user
-    )
+    function _getAccountInformation(address user)
         private
         view
         returns (uint256 totalSCDMinted, uint256 collateralValueInUsd)
@@ -171,12 +154,8 @@ contract SCDEngine is ReentrancyGuard {
     }
 
     function _healthFactor(address user) private view returns (uint256) {
-        (
-            uint256 totalSCDMinted,
-            uint256 collateralValueInUsd
-        ) = _getAccountInformation(user);
-        uint256 collateralAdjustedForThreshold = (collateralValueInUsd *
-            LIQUIDATION_THRESHOLD) / LIQUIDATION_PRECISION;
+        (uint256 totalSCDMinted, uint256 collateralValueInUsd) = _getAccountInformation(user);
+        uint256 collateralAdjustedForThreshold = (collateralValueInUsd * LIQUIDATION_THRESHOLD) / LIQUIDATION_PRECISION;
         return (collateralAdjustedForThreshold * PRECISION) / totalSCDMinted;
     }
 
@@ -190,9 +169,7 @@ contract SCDEngine is ReentrancyGuard {
     ////////////////////////////////////////
     // Public & External View Functions //
     ///////////////////////////////////////
-    function getAccountCollateralValue(
-        address user
-    ) public view returns (uint256 totalCollateralValueInUsd) {
+    function getAccountCollateralValue(address user) public view returns (uint256 totalCollateralValueInUsd) {
         for (uint256 index = 0; index < s_collateralTokens.length; index++) {
             address token = s_collateralTokens[index];
             uint256 amount = s_collateralDeposited[user][token];
@@ -201,15 +178,9 @@ contract SCDEngine is ReentrancyGuard {
         return totalCollateralValueInUsd;
     }
 
-    function getUsdValue(
-        address token,
-        uint256 amount
-    ) public view returns (uint256) {
-        AggregatorV3Interface priceFeed = AggregatorV3Interface(
-            s_priceFeeds[token]
-        );
-        (, int256 price, , , ) = priceFeed.latestRoundData();
-        return (((uint256(price) * ADITIONAL_FED_PRECISION) * amount) /
-            PRECISION);
+    function getUsdValue(address token, uint256 amount) public view returns (uint256) {
+        AggregatorV3Interface priceFeed = AggregatorV3Interface(s_priceFeeds[token]);
+        (, int256 price,,,) = priceFeed.latestRoundData();
+        return (((uint256(price) * ADITIONAL_FED_PRECISION) * amount) / PRECISION);
     }
 }
