@@ -115,8 +115,8 @@ contract SCDEngine is ReentrancyGuard {
         }
     }
 
-    function redeemCollateralForSCD(address tokenCollateralAddress, uint256 amountCollateral)
-        external
+    function redeemCollateral(address tokenCollateralAddress, uint256 amountCollateral)
+        public
         moreThanZero(amountCollateral)
         nonReentrant
     {
@@ -129,7 +129,7 @@ contract SCDEngine is ReentrancyGuard {
         _revertIfHealthFactorIsBroken(msg.sender);
     }
 
-    function redeemCollateral(address tokenCollateralAddress, uint256 amountCollateral, uint256 amountScdToBurn)
+    function redeemCollateralForSCD(address tokenCollateralAddress, uint256 amountCollateral, uint256 amountScdToBurn)
         external
     {
         burnSCD(amountScdToBurn);
