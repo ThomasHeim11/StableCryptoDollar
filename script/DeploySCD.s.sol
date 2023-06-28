@@ -11,7 +11,7 @@ contract DeploySCD is Script {
     address[] public tokenAddresses;
     address[] public priceFeedAddresses;
 
-    function run() external returns (StableCryptoDollar, SCDEngine) {
+    function run() external returns (StableCryptoDollar, SCDEngine, HelperConfig) {
         HelperConfig config = new HelperConfig();
 
        (address wethUsdPriceFeed, address wbtcUsdPriceFeed, address weth, address wbtc,
@@ -27,6 +27,6 @@ contract DeploySCD is Script {
 
        scd.transferOwnership(address(engine));
        vm.stopBroadcast();
-       return (scd, engine);
+       return (scd, engine, config);
     }
 }
