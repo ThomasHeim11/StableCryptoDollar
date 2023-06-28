@@ -21,9 +21,12 @@ contract DeploySCD is Script {
        tokenAddresses = [weth, wbtc];
        priceFeedAddresses = [wethUsdPriceFeed, wbtcUsdPriceFeed];
 
-       vm.startBroadcast();
+       vm.startBroadcast(deployerKey);
        StableCryptoDollar scd = new StableCryptoDollar();
        SCDEngine engine = new SCDEngine(tokenAddresses, priceFeedAddresses, address(scd));
+
+       scd.transferOwnership(address(engine));
        vm.stopBroadcast();
+       return (scd, engine);
     }
 }
