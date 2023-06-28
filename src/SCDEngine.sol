@@ -34,15 +34,17 @@ contract SCDEngine is ReentrancyGuard {
     error SCDEngine__TransferFromFailed();
     error SCDEngine__BreakHealthFactor(uint256 healthFactor);
     error SCDEngine__MintFailed();
+    error SCDEngine__HealthFactorOk();
 
     //////////////////////
     // State Variables  //
     //////////////////////
     uint256 private constant ADITIONAL_FED_PRECISION = 1e10;
     uint256 private constant PRECISION = 1e18;
-    uint256 private constant LIQUIDATION_THRESHOLD = 50;
+    uint256 private constant LIQUIDATION_THRESHOLD = 50; // 200% collateralization ratio
     uint256 private constant LIQUIDATION_PRECISION = 100;
     uint256 private constant MIN_HELATH_FACTOR = 1e18;
+    uint256 private constant LIQUIDATION_BONUS = 10; // this means a 10% bonus
 
     mapping(address token => address s_priceFeed) private s_priceFeeds;
     mapping(address user => mapping(address token => uint256)) private s_collateralDeposited;
@@ -164,9 +166,15 @@ contract SCDEngine is ReentrancyGuard {
         nonReentrant
          {
             uint256 startingUserHealthFactor = _healthFactor(user);
-            if(starting)
-
+            if(startingUserHealthFactor >= MIN_HELATH_FACTOR) {
+                revert SCDEngine__HealthFactorOk();
+            }
+            uint256 tokenAmountFromDebtCovered = getTokenAmountFromUsd(collateral, debtToCover);
+            uint256 bonusCollateral = (tokenAmountFromDebtCovered * LIQUIDATION_BONUS) / LIQUIDATION_PRECISION;
+            uint256 totalCollateralToRedeem = tokenAmountFromDebtCovered + bonusCollateral;
         }
+
+        
     
 
     function getHelathFactor() external view {}
@@ -200,6 +208,13 @@ contract SCDEngine is ReentrancyGuard {
     ////////////////////////////////////////
     // Public & External View Functions //
     ///////////////////////////////////////
+    function getTokenAmountFromUsd(address token, uint256 usdAmountInWei) public view returns
+    (uint256){
+        AggregatorV3Interface priceFeed = AggregatorV3Interface(s_priceFeeds[token]);
+        (, int256 price,,,) = priceFeed.latestRoundData();
+        return (usdAmountInWei * PRECISION) / (uint256(price) * ADITIONAL_FED_PRECISION);
+    }
+
     function getAccountCollateralValue(address user) public view returns (uint256 totalCollateralValueInUsd) {
         for (uint256 index = 0; index < s_collateralTokens.length; index++) {
             address token = s_collateralTokens[index];
