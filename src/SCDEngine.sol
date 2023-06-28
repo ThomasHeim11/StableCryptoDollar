@@ -121,15 +121,20 @@ contract SCDEngine is ReentrancyGuard {
         nonReentrant
     {
         s_collateralDeposited[msg.sender][tokenCollateralAddress] -= amountCollateral;
-        emit CollateralReedmed(msg.sender,tokenCollateralAddress, amountCollateral);
+        emit CollateralReedmed(msg.sender, tokenCollateralAddress, amountCollateral);
         bool succes = IERC20(tokenCollateralAddress).transfer(msg.sender, amountCollateral);
-        if(!succes) {
+        if (!succes) {
             revert SCDEngine__TransferFromFailed();
         }
         _revertIfHealthFactorIsBroken(msg.sender);
     }
 
-    function redeemColleteral() external {}
+    function redeemColleteral(address tokenCollateralAddress, uint256 amountCollateral, uint256 amountScdToBurn)
+        external
+    {
+        burnSCD(amountScdToBurn);
+        redeemCollateral(tokenCollateralAddress, amountCollateral);
+    }
 
     function mintSCD(
         uint256 amountSCDToMint // Change this line
@@ -143,7 +148,15 @@ contract SCDEngine is ReentrancyGuard {
         }
     }
 
-    function burnSCD() external {}
+    function burnSCD(uint256 amount) public moreThanZero(amount) {
+        s_SCDMinted[msg.sender] -= amount;
+        bool success = i_SCDE.transferFrom(msg.sender, address(this), amount);
+        if (!success) {
+            revert SCDEngine__TransferFromFailed();
+        }
+        i_SCDE.burn(amount);
+        _revertIfHealthFactorIsBroken(msg.sender);
+    }
 
     function liquidate() external {}
 
