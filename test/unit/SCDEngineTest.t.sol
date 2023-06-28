@@ -40,6 +40,9 @@ contract SCDEngineTest is Test {
         tokenAddresses.push(weth);
         priceFeedAddresses.push(ethUsdPriceFeed);
         priceFeedAddresses.push(ethUsdPriceFeed);
+
+        vm.expectRevert(SCDEngine.SCDEngine__TokenAddressAndPriceFeedAddressMustBeSameLength.selector);
+        new SCDEngine(tokenAddresses, priceFeedAddresses, address(scd));
     }
 
     //////////////////////
