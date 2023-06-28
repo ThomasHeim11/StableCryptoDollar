@@ -35,6 +35,7 @@ contract SCDEngine is ReentrancyGuard {
     error SCDEngine__BreakHealthFactor(uint256 healthFactor);
     error SCDEngine__MintFailed();
     error SCDEngine__HealthFactorOk();
+    error SCDEngine__HealthFactorNotImproved();
 
     //////////////////////
     // State Variables  //
@@ -57,7 +58,7 @@ contract SCDEngine is ReentrancyGuard {
     // Events           //
     //////////////////////
     event CollateralDeposited(address indexed user, address indexed token, uint256 indexed amount);
-    event CollateralReedmed(address indexed user, address indexed token, uint256 indexed amount);
+    event CollateralReedmed(address indexed redeemdFrom, address indexed redeemdTo, address indexed token, uint256 amount);
 
     ///////////////////
     // Modifiers     //
@@ -122,12 +123,7 @@ contract SCDEngine is ReentrancyGuard {
         moreThanZero(amountCollateral)
         nonReentrant
     {
-        s_collateralDeposited[msg.sender][tokenCollateralAddress] -= amountCollateral;
-        emit CollateralReedmed(msg.sender, tokenCollateralAddress, amountCollateral);
-        bool succes = IERC20(tokenCollateralAddress).transfer(msg.sender, amountCollateral);
-        if (!succes) {
-            revert SCDEngine__TransferFromFailed();
-        }
+        _redeemCollateral(msg.sender, msg.sender, tokenCollateralAddress, amountCollateral);
         _revertIfHealthFactorIsBroken(msg.sender);
     }
 
@@ -151,12 +147,7 @@ contract SCDEngine is ReentrancyGuard {
     }
 
     function burnSCD(uint256 amount) public moreThanZero(amount) {
-        s_SCDMinted[msg.sender] -= amount;
-        bool success = i_SCDE.transferFrom(msg.sender, address(this), amount);
-        if (!success) {
-            revert SCDEngine__TransferFromFailed();
-        }
-        i_SCDE.burn(amount);
+        _burnScd(amount, msg.sender,msg.sender);
         _revertIfHealthFactorIsBroken(msg.sender);
     }
 
@@ -172,6 +163,14 @@ contract SCDEngine is ReentrancyGuard {
             uint256 tokenAmountFromDebtCovered = getTokenAmountFromUsd(collateral, debtToCover);
             uint256 bonusCollateral = (tokenAmountFromDebtCovered * LIQUIDATION_BONUS) / LIQUIDATION_PRECISION;
             uint256 totalCollateralToRedeem = tokenAmountFromDebtCovered + bonusCollateral;
+            _redeemCollateral(user, msg.sender, collateral, totalCollateralToRedeem);
+            _burnScd(debtToCover, user, msg.sender);
+
+            uint256 endingUserHealthFactor = _healthFactor(user);
+            if (endingUserHealthFactor <= startingUserHealthFactor) {
+                revert SCDEngine__HealthFactorNotImproved();
+            }
+            _revertIfHealthFactorIsBroken(msg.sender);
         }
 
         
@@ -208,6 +207,25 @@ contract SCDEngine is ReentrancyGuard {
     ////////////////////////////////////////
     // Public & External View Functions //
     ///////////////////////////////////////
+
+    function _burnScd(uint256 amountScdToBurn, address onBehalfOf, address scdFrom) private {
+        s_SCDMinted[onBehalfOf] -= amountScdToBurn;
+        bool success = i_SCDE.transferFrom(scdFrom, address(this), amountScdToBurn);
+        if (!success) {
+            revert SCDEngine__TransferFromFailed();
+        }
+        i_SCDE.burn(amountScdToBurn);
+    }
+
+    function  _redeemCollateral(address from, address to,address tokenCollateralAddress, uint256 amountCollateral) private {
+        s_collateralDeposited[from][tokenCollateralAddress] -= amountCollateral;
+        emit CollateralReedmed(from, to, tokenCollateralAddress, amountCollateral);
+        bool succes = IERC20(tokenCollateralAddress).transfer(to, amountCollateral);
+        if (!succes) {
+            revert SCDEngine__TransferFromFailed();
+        }
+    }
+
     function getTokenAmountFromUsd(address token, uint256 usdAmountInWei) public view returns
     (uint256){
         AggregatorV3Interface priceFeed = AggregatorV3Interface(s_priceFeeds[token]);
