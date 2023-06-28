@@ -99,13 +99,17 @@ contract SCDEngine is ReentrancyGuard {
     // External Functions //
     ///////////////////////
 
-    function depositCollateralAndMintSCD() external {}
+    function depositCollateralAndMintSCD(address tokenCollateralAddress, uint256 amountCollateral, uint256 amountScdToMint) external {
+        depositCollateral(tokenCollateralAddress, amountCollateral);
+        mintSCD(amountScdToMint);
+        
+    }
 
     function depositCollateral(
         address tokenCollateralAddress,
         uint256 amountCollateral
     )
-        external
+        public
         moreThanZero(amountCollateral)
         isAllowedToken(tokenCollateralAddress)
         nonReentrant
@@ -134,7 +138,7 @@ contract SCDEngine is ReentrancyGuard {
 
     function mintSCD(
     uint256 amountSCDToMint // Change this line
-) external moreThanZero(amountSCDToMint) nonReentrant {
+) public moreThanZero(amountSCDToMint) nonReentrant {
     s_SCDMinted[msg.sender] += amountSCDToMint;
     _revertIfHealthFactorIsBroken(msg.sender);
     bool minted = i_SCDE.mint(msg.sender, amountSCDToMint);
