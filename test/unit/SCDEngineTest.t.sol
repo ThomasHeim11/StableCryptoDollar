@@ -15,6 +15,7 @@ contract SCDEngineTest is Test {
     SCDEngine scde;
     HelperConfig config;
     address ethUsdPriceFeed;
+    address btcUsdPriceFeed;
     address weth;
 
     address public USER = makeAddr("user");
@@ -24,9 +25,21 @@ contract SCDEngineTest is Test {
     function setUp() public {
         deployer = new DeploySCD();
         (scd, scde, config) = deployer.run();
-        (ethUsdPriceFeed, , weth, , ) = config.activeNetworkConfig();
+        (ethUsdPriceFeed, btcUsdPriceFeed , weth, , ) = config.activeNetworkConfig();
 
         ERC20Mock(weth).mint(USER,STARTING_ERC20_BALANCE);
+    }
+
+    //////////////////////
+    // Constructor Test //
+    //////////////////////
+    address[] public tokenAddresses;
+    address[] public priceFeedAddresses;
+
+    function testRevertsIfTokenLengthDoestMatchPriceFeeds() public{
+        tokenAddresses.push(weth);
+        priceFeedAddresses.push(ethUsdPriceFeed);
+        priceFeedAddresses.push(ethUsdPriceFeed);
     }
 
     //////////////////////
