@@ -129,7 +129,7 @@ contract SCDEngine is ReentrancyGuard {
         _revertIfHealthFactorIsBroken(msg.sender);
     }
 
-    function redeemColleteral(address tokenCollateralAddress, uint256 amountCollateral, uint256 amountScdToBurn)
+    function redeemCollateral(address tokenCollateralAddress, uint256 amountCollateral, uint256 amountScdToBurn)
         external
     {
         burnSCD(amountScdToBurn);
