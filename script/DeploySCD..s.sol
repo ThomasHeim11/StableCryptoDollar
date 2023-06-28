@@ -23,5 +23,7 @@ contract DeploySCD is Script {
 
        vm.startBroadcast();
        StableCryptoDollar scd = new StableCryptoDollar();
+       SCDEngine engine = new SCDEngine(tokenAddresses, priceFeedAddresses, address(scd));
+       vm.stopBroadcast();
     }
 }
