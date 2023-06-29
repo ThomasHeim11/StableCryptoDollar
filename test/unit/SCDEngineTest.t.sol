@@ -81,5 +81,6 @@ contract SCDEngineTest is Test {
         vm.startPrank(USER);
         vm.expectRevert(SCDEngine.SCDEngine__NotAllowedToken.selector);
         scde.depositCollateral(address(ranToken), AMOUNT_COLLATERAL);
+        vm.stopPrank();
     }
 }
