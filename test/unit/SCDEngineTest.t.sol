@@ -80,6 +80,6 @@ contract SCDEngineTest is Test {
         ERC20Mock ranToken = new ERC20Mock("RAN", "RAN", USER, AMOUNT_COLLATERAL);
         vm.startPrank(USER);
         vm.expectRevert(SCDEngine.SCDEngine__NotAllowedToken.selector);
-        dsce.depositCollateral()
+        dsce.depositCollateral(address(ranToken), AMOUNT_COLLATERAL);
     }
 }
