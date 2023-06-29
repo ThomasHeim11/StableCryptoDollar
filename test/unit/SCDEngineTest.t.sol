@@ -25,9 +25,9 @@ contract SCDEngineTest is Test {
     function setUp() public {
         deployer = new DeploySCD();
         (scd, scde, config) = deployer.run();
-        (ethUsdPriceFeed, btcUsdPriceFeed , weth, , ) = config.activeNetworkConfig();
+        (ethUsdPriceFeed, btcUsdPriceFeed, weth,,) = config.activeNetworkConfig();
 
-        ERC20Mock(weth).mint(USER,STARTING_ERC20_BALANCE);
+        ERC20Mock(weth).mint(USER, STARTING_ERC20_BALANCE);
     }
 
     //////////////////////
@@ -36,7 +36,7 @@ contract SCDEngineTest is Test {
     address[] public tokenAddresses;
     address[] public priceFeedAddresses;
 
-    function testRevertsIfTokenLengthDoestMatchPriceFeeds() public{
+    function testRevertsIfTokenLengthDoestMatchPriceFeeds() public {
         tokenAddresses.push(weth);
         priceFeedAddresses.push(ethUsdPriceFeed);
         priceFeedAddresses.push(ethUsdPriceFeed);
@@ -60,7 +60,7 @@ contract SCDEngineTest is Test {
         uint256 usdAmount = 100 ether;
         uint256 expectedWeth = 0.05 ether;
         uint256 actualWeth = scde.getTokenAmountFromUsd(weth, usdAmount);
-        assertEq(expectedWeth, actualWeth); 
+        assertEq(expectedWeth, actualWeth);
     }
 
     ////////////////////////////
@@ -74,8 +74,9 @@ contract SCDEngineTest is Test {
         vm.expectRevert(SCDEngine.SCDEngine__NeedsMoreThanZero.selector);
         scde.depositCollateral(weth, 0);
         vm.stopPrank();
-
-
     }
-    
+
+    function testRevertWithUnapprovedCollateral() public {
+        ERC20Mock ranToken = new ERC20Mock("RAN", "RAN", USER, AMOUNT_COLLATERAL);
+    }
 }
