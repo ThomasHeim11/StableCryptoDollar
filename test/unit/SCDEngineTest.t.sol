@@ -78,5 +78,8 @@ contract SCDEngineTest is Test {
 
     function testRevertWithUnapprovedCollateral() public {
         ERC20Mock ranToken = new ERC20Mock("RAN", "RAN", USER, AMOUNT_COLLATERAL);
+        vm.startPrank(USER);
+        vm.expectRevert(SCDEngine.SCDEngine__NotAllowedToken.selector);
+        dsce.depositCollateral()
     }
 }
