@@ -56,6 +56,13 @@ contract SCDEngineTest is Test {
         assertEq(expectedUsd, actualUsd);
     }
 
+    function testgetTokenAmountFromUsd() public {
+        uint256 usdAmount = 100 ether;
+        uint256 expectedWeth = 0.05 ether;
+        uint256 actualWeth = scde.getTokenAmountFromUsd(weth, usdAmount);
+        assertEq(expectedWeth, actualWeth); 
+    }
+
     ////////////////////////////
     // DepositCollateral Test //
     ////////////////////////////
