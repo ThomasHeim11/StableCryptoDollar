@@ -9,9 +9,9 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
  * @dev This contract is a mock implementation of a decentralized stable coin that fails transfers.
  */
 contract MockFailedTransfer is ERC20Burnable, Ownable {
-    error DecentralizedStableCoin__AmountMustBeMoreThanZero();
-    error DecentralizedStableCoin__BurnAmountExceedsBalance();
-    error DecentralizedStableCoin__NotZeroAddress();
+    error StableCryptoDollar___AmountMustBeMoreThanZero();
+    error StableCryptoDollar___BurnAmountExceedsBalance();
+    error StableCryptoDollar___NotZeroAddress();
 
     /**
      * @dev Constructor that sets the name and symbol of the token.
@@ -26,10 +26,10 @@ contract MockFailedTransfer is ERC20Burnable, Ownable {
     function burn(uint256 _amount) public override onlyOwner {
         uint256 balance = balanceOf(msg.sender);
         if (_amount <= 0) {
-            revert DecentralizedStableCoin__AmountMustBeMoreThanZero();
+            revert StableCryptoDollar___AmountMustBeMoreThanZero();
         }
         if (balance < _amount) {
-            revert DecentralizedStableCoin__BurnAmountExceedsBalance();
+            revert StableCryptoDollar___BurnAmountExceedsBalance();
         }
         super.burn(_amount);
     }
