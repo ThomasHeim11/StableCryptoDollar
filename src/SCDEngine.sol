@@ -46,7 +46,7 @@ contract SCDEngine is ReentrancyGuard {
     StableCryptoDollar private immutable i_SCDE;
 
     uint256 private constant LIQUIDATION_THRESHOLD = 50; // 200% collateralization ratio
-    uint256 private constant LIQUIDATION_BONUS = 10; // this means a 10% bonus
+    uint256 private constant LIQUIDATION_BONUS = 10; // This means you get assets at a 10% discount when liquidating
     uint256 private constant MIN_HEALTH_FACTOR = 1e18;
     uint256 private constant PRECISION = 1e18;
     uint256 private constant ADDITIONAL_FEED_PRECISION = 1e10;
@@ -118,12 +118,12 @@ contract SCDEngine is ReentrancyGuard {
         _revertIfHealthFactorIsBroken(msg.sender);
     }
 
-    function redeemCollateral(address tokenCollateralAddress, uint256 amountCollateral, uint256 amountScdToBurn)
+    function redeemCollateral(address tokenCollateralAddress, uint256 amountCollateral)
         public
         moreThanZero(amountCollateral)
         nonReentrant
     {
-        _burnScd(amountScdToBurn, msg.sender, msg.sender);
+        
         _redeemCollateral(tokenCollateralAddress, amountCollateral, msg.sender, msg.sender);
         _revertIfHealthFactorIsBroken(msg.sender);
     }
@@ -144,7 +144,6 @@ contract SCDEngine is ReentrancyGuard {
         }
         uint256 tokenAmountFromDebtCovered = getTokenAmountFromUsd(collateral, debtToCover);
         uint256 bonusCollateral = (tokenAmountFromDebtCovered * LIQUIDATION_BONUS) / LIQUIDATION_PRECISION;
-        // uint256 totalCollateralToRedeem = tokenAmountFromDebtCovered + bonusCollateral;
         _redeemCollateral(collateral, tokenAmountFromDebtCovered + bonusCollateral, user, msg.sender);
         _burnScd(debtToCover, user, msg.sender);
 
@@ -172,8 +171,9 @@ contract SCDEngine is ReentrancyGuard {
     function depositCollateral(address tokenCollateralAddress, uint256 amountCollateral)
         public
         moreThanZero(amountCollateral)
-        isAllowedToken(tokenCollateralAddress)
         nonReentrant
+        isAllowedToken(tokenCollateralAddress)
+        
     {
         s_collateralDeposited[msg.sender][tokenCollateralAddress] += amountCollateral;
         emit CollateralDeposited(msg.sender, tokenCollateralAddress, amountCollateral);
@@ -207,9 +207,9 @@ contract SCDEngine is ReentrancyGuard {
         i_SCDE.burn(amountScdToBurn);
     }
 
-    ////////////////////////////////////////
-    // Private & Internal View Functions //
-    ///////////////////////////////////////
+    //////////////////////////////////////////////
+    // Private & Internal View & Pure Functions //
+    //////////////////////////////////////////////
 
     function _getAccountInformation(address user)
         private
