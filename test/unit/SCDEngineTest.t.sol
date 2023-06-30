@@ -83,4 +83,6 @@ contract SCDEngineTest is Test {
         scde.depositCollateral(address(ranToken), AMOUNT_COLLATERAL);
         vm.stopPrank();
     }
+
+    function testCanDepositCollateral()
 }

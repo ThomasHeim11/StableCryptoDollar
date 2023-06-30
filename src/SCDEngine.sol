@@ -247,4 +247,12 @@ contract SCDEngine is ReentrancyGuard {
         (, int256 price,,,) = priceFeed.latestRoundData();
         return (((uint256(price) * ADITIONAL_FED_PRECISION) * amount) / PRECISION);
     }
+
+    function getAccountInformation(address user) 
+        external 
+        view
+        returns (uint256 totalSCDMinted, uint256 collateralValueInUsd)
+    {
+        (totalSCDMinted, collateralValueInUsd) = _getAccountInformation(user);
+    }
 }
