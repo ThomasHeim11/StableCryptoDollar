@@ -39,7 +39,7 @@ import {MockV3Aggregator} from "./MockV3Aggregator.sol";
  *
  * This is the contract meant to be owned by DSCEngine. It is a ERC20 token that can be minted and burned by the DSCEngine smart contract.
  */
-contract StableCryptoDollar is ERC20Burnable, Ownable {
+contract MockMoreDebtSCD is ERC20Burnable, Ownable {
     error StableCryptoDollar__AmountMustBeMoreThanZero();
     error StableCryptoDollar__BurnAmountExceedsBalance();
     error StableCryptoDollar_NotZeroAddress();
