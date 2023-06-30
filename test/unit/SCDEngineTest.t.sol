@@ -330,4 +330,16 @@ contract SCDEngineTest is StdCheats, Test {
         scde.redeemCollateralForSCD(weth, 0, amountToMint);
         vm.stopPrank();
     }
+
+    function testCanRedeemDepositedCollateral() public {
+        vm.startPrank(user);
+        ERC20Mock(weth).approve(address(scde), amountCollateral);
+        scde.depositCollateralAndMintSCD(weth, amountCollateral, amountToMint);
+        scd.approve(address(scde), amountToMint);
+        scde.redeemCollateralForSCD(weth, amountCollateral, amountToMint);
+        vm.stopPrank();
+
+        uint256 userBalance = scd.balanceOf(user);
+        assertEq(userBalance, 0);
+    }
 }
