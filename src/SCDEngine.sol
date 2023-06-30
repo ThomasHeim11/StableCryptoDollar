@@ -111,18 +111,14 @@ contract SCDEngine is ReentrancyGuard {
         mintSCD(amountScdToMint);
     }
 
-    function depositCollateral(address tokenCollateralAddress, uint256 amountCollateral)
-        public
+    function redeemCollateralForSCD(address tokenCollateralAddress, uint256 amountCollateral, uint256 amountScdToBurn)
+        external
         moreThanZero(amountCollateral)
-        isAllowedToken(tokenCollateralAddress)
-        nonReentrant
     {
-        s_collateralDeposited[msg.sender][tokenCollateralAddress] += amountCollateral;
-        emit CollateralDeposited(msg.sender, tokenCollateralAddress, amountCollateral);
-        bool succes = IERC20(tokenCollateralAddress).transferFrom(msg.sender, address(this), amountCollateral);
-        if (!succes) {
-            revert SCDEngine__TransferFromFailed();
-        }
+        _burnSCD(amountScdToBurn, msg.sender, msg.sender);
+        _redeemCollateral(tokenCollateralAddress, amountCollateral, msg.sender, msg.sender);
+        revertIfHealthFactorIsBroken(msg.sender);
+
     }
 
     function redeemCollateral(address tokenCollateralAddress, uint256 amountCollateral)
@@ -130,27 +126,8 @@ contract SCDEngine is ReentrancyGuard {
         moreThanZero(amountCollateral)
         nonReentrant
     {
-        _redeemCollateral(msg.sender, msg.sender, tokenCollateralAddress, amountCollateral);
+        _redeemCollateral(tokenCollateralAddress, amountCollateral, msg.sender, msg.sender,);
         _revertIfHealthFactorIsBroken(msg.sender);
-    }
-
-    function redeemCollateralForSCD(address tokenCollateralAddress, uint256 amountCollateral, uint256 amountScdToBurn)
-        external
-    {
-        burnSCD(amountScdToBurn);
-        redeemCollateral(tokenCollateralAddress, amountCollateral);
-    }
-
-    function mintSCD(
-        uint256 amountSCDToMint // Change this line
-    ) public moreThanZero(amountSCDToMint) nonReentrant {
-        s_SCDMinted[msg.sender] += amountSCDToMint;
-        _revertIfHealthFactorIsBroken(msg.sender);
-        bool minted = i_SCDE.mint(msg.sender, amountSCDToMint);
-
-        if (!minted) {
-            revert SCDEngine__MintFailed();
-        }
     }
 
     function burnSCD(uint256 amount) public moreThanZero(amount) {
@@ -158,7 +135,7 @@ contract SCDEngine is ReentrancyGuard {
         _revertIfHealthFactorIsBroken(msg.sender);
     }
 
-    function liquidate(address collateral, address user, uint256 debtToCover)
+     function liquidate(address collateral, address user, uint256 debtToCover)
         external
         moreThanZero(debtToCover)
         nonReentrant
@@ -180,7 +157,39 @@ contract SCDEngine is ReentrancyGuard {
         _revertIfHealthFactorIsBroken(msg.sender);
     }
 
-    function getHelathFactor() external view {}
+
+    ///////////////////////
+    // Public Functions //
+    //////////////////////
+
+    function mintSCD(
+        uint256 amountSCDToMint 
+    ) public moreThanZero(amountSCDToMint) nonReentrant {
+        s_SCDMinted[msg.sender] += amountSCDToMint;
+        _revertIfHealthFactorIsBroken(msg.sender);
+        bool minted = i_SCDE.mint(msg.sender, amountSCDToMint);
+
+        if (!minted) {
+            revert SCDEngine__MintFailed();
+        }
+    }
+
+     function depositCollateral(address tokenCollateralAddress, uint256 amountCollateral)
+        public
+        moreThanZero(amountCollateral)
+        isAllowedToken(tokenCollateralAddress)
+        nonReentrant
+    {
+        s_collateralDeposited[msg.sender][tokenCollateralAddress] += amountCollateral;
+        emit CollateralDeposited(msg.sender, tokenCollateralAddress, amountCollateral);
+        bool succes = IERC20(tokenCollateralAddress).transferFrom(msg.sender, address(this), amountCollateral);
+        if (!succes) {
+            revert SCDEngine__TransferFromFailed();
+        }
+    }
+
+
+    
 
     ////////////////////////////////////////
     // Private & Internal View Functions //
