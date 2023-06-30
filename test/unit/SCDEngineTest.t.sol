@@ -22,6 +22,7 @@ contract SCDEngineTest is Test {
     StableCryptoDollar scd;
     SCDEngine scde;
     HelperConfig config;
+
     address ethUsdPriceFeed;
     address btcUsdPriceFeed;
     address weth;
@@ -74,6 +75,32 @@ contract SCDEngineTest is Test {
     ////////////////////////////
     // DepositCollateral Test //
     ////////////////////////////
+
+    function testRevertsIfTransferFromFails() public {
+        // Arrange - Setup
+        address owner = msg.sender;
+        vm.prank(owner);
+        MockFailedTransferFrom mockDsc = new MockFailedTransferFrom();
+        tokenAddresses = [address(mockDsc)];
+        priceFeedAddresses = [ethUsdPriceFeed];
+        vm.prank(owner);
+        SCDEngine mockDsce = new SCDEngine(
+            tokenAddresses,
+            priceFeedAddresses,
+            address(mockDsc)
+        );
+        mockDsc.mint(USER, AMOUNT_COLLATERAL);
+
+        vm.prank(owner);
+        mockDsc.transferOwnership(address(mockDsce));
+        // Arrange - User
+        vm.startPrank(USER);
+        ERC20Mock(address(mockDsc)).approve(address(mockDsce), AMOUNT_COLLATERAL);
+        // Act / Assert
+        vm.expectRevert(SCDEngine.SCDEngine__TransferFromFailed.selector);
+        mockDsce.depositCollateral(address(mockDsc), AMOUNT_COLLATERAL);
+        vm.stopPrank();
+    }
 
     function testRevertsIfCollateralZero() public {
         vm.startPrank(USER);
