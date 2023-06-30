@@ -445,4 +445,9 @@ contract SCDEngineTest is StdCheats, Test {
         assertEq(userCollateralValueInUsd, expectedUserCollateralValueInUsd);
         assertEq(userCollateralValueInUsd, hardCodedExpectedValue);
     }
+
+    function testLiquidatorTakesOnUsersDebt() public liquidated {
+        (uint256 liquidatorDscMinted,) = scde.getAccountInformation(liquidator);
+        assertEq(liquidatorDscMinted, amountToMint);
+    }
 }
