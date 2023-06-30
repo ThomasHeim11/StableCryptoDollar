@@ -17,7 +17,7 @@ import {StdCheats} from "forge-std/StdCheats.sol";
 
 import {Test, console} from "forge-std/Test.sol";
 
-contract SCDEngineTest is Test {
+contract SCDEngineTest is StdCheats, Test {
     DeploySCD deployer;
     StableCryptoDollar scd;
     SCDEngine scde;
@@ -30,6 +30,7 @@ contract SCDEngineTest is Test {
     address public USER = makeAddr("user");
     uint256 public constant AMOUNT_COLLATERAL = 10 ether;
     uint256 public constant STARTING_ERC20_BALANCE = 10 ether;
+    uint256 amountToMint = 100 ether;
 
     function setUp() public {
         deployer = new DeploySCD();
@@ -127,6 +128,11 @@ contract SCDEngineTest is Test {
         _;
     }
 
+    function testCanDepositCollateralWithoutMinting() public depositCollateral {
+        uint256 userBalance = scd.balanceOf(USER);
+        assertEq(userBalance, 0);
+    }
+
     function testCanDepositedCollateralAndGetAccountInfo() public depositCollateral {
         (uint256 totalScdMinted, uint256 collateralValueInUsd) = scde.getAccountInformation(USER);
 
@@ -135,4 +141,23 @@ contract SCDEngineTest is Test {
         assertEq(totalScdMinted, expectedTotalScdMinted);
         assertEq(AMOUNT_COLLATERAL, expectedDepositAmount);
     }
+
+    ///////////////////////////////////////
+    // depositCollateralAndMintDsc Tests //
+    ///////////////////////////////////////
+
+    function testRevertsIfMintedDscBreaksHealthFactor() public {
+        (, int256 price,,,) = MockV3Aggregator(ethUsdPriceFeed).latestRoundData();
+        amountToMint = (AMOUNT_COLLATERAL * (uint256(price) * scde.getAdditionalFeedPrecision())) / scde.getPrecision();
+        vm.startPrank(USER);
+        ERC20Mock(weth).approve(address(scde), AMOUNT_COLLATERAL);
+
+        uint256 expectedHealthFactor =
+            scde.calculateHealthFactor(amountToMint, scde.getUsdValue(weth, AMOUNT_COLLATERAL));
+        vm.expectRevert(abi.encodeWithSelector(SCDEngine.SCDngine__BreaksHealthFactor.selector, expectedHealthFactor));
+        scde.depositCollateralAndMintDsc(weth, AMOUNT_COLLATERAL, amountToMint);
+        vm.stopPrank();
+    }
+
+
 }
