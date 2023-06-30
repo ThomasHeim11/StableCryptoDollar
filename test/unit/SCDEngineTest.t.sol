@@ -18,14 +18,20 @@ import {StdCheats} from "forge-std/StdCheats.sol";
 import {Test, console} from "forge-std/Test.sol";
 
 contract SCDEngineTest is StdCheats, Test {
-    DeploySCD deployer;
-    StableCryptoDollar scd;
-    SCDEngine scde;
+    SCDEngine public scde;
+    StableCryptoDollar public scd;
     HelperConfig config;
+    // DeploySCD deployer;
 
     address ethUsdPriceFeed;
     address btcUsdPriceFeed;
     address weth;
+    address public wbtc;
+    uint256 public deployerKey;
+
+    uint256 amountCollateral = 10 ether;
+    uint256 amountToMint = 100 ether;
+    address public user = address(1);
 
     address public USER = makeAddr("user");
     uint256 public constant AMOUNT_COLLATERAL = 10 ether;
