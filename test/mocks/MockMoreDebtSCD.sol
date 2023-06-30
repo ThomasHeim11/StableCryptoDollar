@@ -1,15 +1,17 @@
 // SPDX-License-Identifier: MIT
 
+pragma solidity 0.8.19;
+
+
+import {ERC20Burnable, ERC20} from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {MockV3Aggregator} from "./MockV3Aggregator.sol";
+
 /**
  * @title StableCryptoDollar
  * @dev This contract represents a decentralized stablecoin that is collateralized by crypto assets. It is an ERC20 token
  *      that can be minted and burned by the DSCEngine smart contract.
  */
-pragma solidity 0.8.19;
-
-import {ERC20Burnable, ERC20} from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {MockV3Aggregator} from "./MockV3Aggregator.sol";
 
 contract MockMoreDebtSCD is ERC20Burnable, Ownable {
     error StableCryptoDollar__AmountMustBeMoreThanZero();
