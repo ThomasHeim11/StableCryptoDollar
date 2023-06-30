@@ -450,4 +450,32 @@ contract SCDEngineTest is StdCheats, Test {
         (uint256 liquidatorDscMinted,) = scde.getAccountInformation(liquidator);
         assertEq(liquidatorDscMinted, amountToMint);
     }
+
+    function testUserHasNoMoreDebt() public liquidated {
+        (uint256 userDscMinted,) = scde.getAccountInformation(user);
+        assertEq(userDscMinted, 0);
+    }
+
+    ///////////////////////////////////
+    // View & Pure Function Tests   //
+    //////////////////////////////////
+    function testGetCollateralTokenPriceFeed() public {
+        address priceFeed = scde.getCollateralTokenPriceFeed(weth);
+        assertEq(priceFeed, ethUsdPriceFeed);
+    }
+
+    function testGetCollateralTokens() public {
+        address[] memory collateralTokens = scde.getCollateralTokens();
+        assertEq(collateralTokens[0], weth);
+    }
+
+    function testGetMinHealthFactor() public {
+        uint256 minHealthFactor = scde.getMinHealthFactor();
+        assertEq(minHealthFactor, MIN_HEALTH_FACTOR);
+    }
+
+    function testGetLiquidationThreshold() public {
+        uint256 liquidationThreshold = scde.getLiquidationThreshold();
+        assertEq(liquidationThreshold, LIQUIDATION_THRESHOLD);
+    }
 }
