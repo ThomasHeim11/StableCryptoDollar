@@ -188,12 +188,43 @@ contract SCDEngine is ReentrancyGuard {
         }
     }
 
+    ///////////////////////
+    // Private Functions //
+    //////////////////////
 
-    
+    function _redeemCollateral(address tokenCollateralAddress, uint256 amountCollateral, address from, address to)
+        private
+    {
+        s_collateralDeposited[from][tokenCollateralAddress] -= amountCollateral;
+        emit CollateralReedmed(tokenCollateralAddress, amountCollateral, from, to);
+        bool succes = IERC20(tokenCollateralAddress).transfer(to, amountCollateral);
+        if (!succes) {
+            revert SCDEngine__TransferFromFailed();
+        }
+    }
+
+    function _burnScd(uint256 amountScdToBurn, address onBehalfOf, address scdFrom) private {
+        s_SCDMinted[onBehalfOf] -= amountScdToBurn;
+        bool success = i_SCDE.transferFrom(scdFrom, address(this), amountScdToBurn);
+        if (!success) {
+            revert SCDEngine__TransferFromFailed();
+        }
+        i_SCDE.burn(amountScdToBurn);
+    }
 
     ////////////////////////////////////////
     // Private & Internal View Functions //
     ///////////////////////////////////////
+
+    function calculateHealthFactor(uint256 totalDscMinted, uint256 collateralValueInUsd)
+        internal
+        pure
+        returns (uint256)
+    {
+        // if (totalDscMinted == 0) return type(uint256).max;
+        // uint256 collateralAdjustedForThreshold = (collateralValueInUsd * LIQUIDATION_THRESHOLD) / 100;
+        return (collateralAdjustedForThreshold * 1e18) / totalDscMinted;
+    }
 
     function _getAccountInformation(address user)
         private
@@ -206,18 +237,15 @@ contract SCDEngine is ReentrancyGuard {
 
     function _healthFactor(address user) private view returns (uint256) {
         (uint256 totalDscMinted, uint256 collateralValueInUsd) = _getAccountInformation(user);
-        return _calculateHealthFactor(totalDscMinted, collateralValueInUsd);
+        return calculateHealthFactor(totalDscMinted, collateralValueInUsd);
     }
 
-    function _calculateHealthFactor(uint256 totalDscMinted, uint256 collateralValueInUsd)
-        internal
-        pure
-        returns (uint256)
-    {
-        if (totalDscMinted == 0) return type(uint256).max;
-        uint256 collateralAdjustedForThreshold = (collateralValueInUsd * LIQUIDATION_THRESHOLD) / 100;
-        return (collateralAdjustedForThreshold * 1e18) / totalDscMinted;
+     function _getUsdValue(address token, uint256 amount) private view returns (uint256) {
+        AggregatorV3Interface priceFeed = AggregatorV3Interface(s_priceFeeds[token]);
+        (, int256 price,,,) = priceFeed.staleCheckLatestRoundData();
+        return ((uint256(price) * ADDITIONAL_FEED_PRECISION) * amount) / PRECISION;
     }
+
 
     function _revertIfHealthFactorIsBroken(address user) internal view {
         uint256 userHealthFactor = _healthFactor(user);
@@ -226,49 +254,18 @@ contract SCDEngine is ReentrancyGuard {
         }
     }
 
-    ////////////////////////////////////////
-    // Public & External View Functions //
-    ///////////////////////////////////////
-
-    function _burnScd(uint256 amountScdToBurn, address onBehalfOf, address scdFrom) private {
-        s_SCDMinted[onBehalfOf] -= amountScdToBurn;
-        bool success = i_SCDE.transferFrom(scdFrom, address(this), amountScdToBurn);
-        if (!success) {
-            revert SCDEngine__TransferFromFailed();
-        }
-        i_SCDE.burn(amountScdToBurn);
-    }
-
-    function _redeemCollateral(address from, address to, address tokenCollateralAddress, uint256 amountCollateral)
-        private
+    ////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
+    // External & Public View & Pure Functions /////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////
+    
+    function calculateHealthFactor(uint256 totalDscMinted, uint256 collateralValueInUsd)
+        external
+        pure
+        returns (uint256)
     {
-        s_collateralDeposited[from][tokenCollateralAddress] -= amountCollateral;
-        emit CollateralReedmed(from, to, tokenCollateralAddress, amountCollateral);
-        bool succes = IERC20(tokenCollateralAddress).transfer(to, amountCollateral);
-        if (!succes) {
-            revert SCDEngine__TransferFromFailed();
-        }
-    }
-
-    function getTokenAmountFromUsd(address token, uint256 usdAmountInWei) public view returns (uint256) {
-        AggregatorV3Interface priceFeed = AggregatorV3Interface(s_priceFeeds[token]);
-        (, int256 price,,,) = priceFeed.latestRoundData();
-        return (usdAmountInWei * PRECISION) / (uint256(price) * ADITIONAL_FED_PRECISION);
-    }
-
-    function getAccountCollateralValue(address user) public view returns (uint256 totalCollateralValueInUsd) {
-        for (uint256 index = 0; index < s_collateralTokens.length; index++) {
-            address token = s_collateralTokens[index];
-            uint256 amount = s_collateralDeposited[user][token];
-            totalCollateralValueInUsd += getUsdValue(token, amount);
-        }
-        return totalCollateralValueInUsd;
-    }
-
-    function getUsdValue(address token, uint256 amount) public view returns (uint256) {
-        AggregatorV3Interface priceFeed = AggregatorV3Interface(s_priceFeeds[token]);
-        (, int256 price,,,) = priceFeed.latestRoundData();
-        return (((uint256(price) * ADITIONAL_FED_PRECISION) * amount) / PRECISION);
+        return _calculateHealthFactor(totalDscMinted, collateralValueInUsd);
     }
 
     function getAccountInformation(address user)
@@ -279,6 +276,32 @@ contract SCDEngine is ReentrancyGuard {
         (totalSCDMinted, collateralValueInUsd) = _getAccountInformation(user);
     }
 
+     function getUsdValue(
+        address token,
+        uint256 amount // in WEI
+    ) external view returns (uint256) {
+        return _getUsdValue(token, amount);
+    }
+
+     function getCollateralBalanceOfUser(address user, address token) external view returns (uint256) {
+        return s_collateralDeposited[user][token];
+    }
+
+     function getAccountCollateralValue(address user) public view returns (uint256 totalCollateralValueInUsd) {
+        for (uint256 index = 0; index < s_collateralTokens.length; index++) {
+            address token = s_collateralTokens[index];
+            uint256 amount = s_collateralDeposited[user][token];
+            totalCollateralValueInUsd += getUsdValue(token, amount);
+        }
+        return totalCollateralValueInUsd;
+    }
+
+    function getTokenAmountFromUsd(address token, uint256 usdAmountInWei) public view returns (uint256) {
+        AggregatorV3Interface priceFeed = AggregatorV3Interface(s_priceFeeds[token]);
+        (, int256 price,,,) = priceFeed.latestRoundData();
+        return (usdAmountInWei * PRECISION) / (uint256(price) * ADITIONAL_FED_PRECISION);
+    }
+
     function getPrecision() external pure returns (uint256) {
         return PRECISION;
     }
@@ -286,4 +309,33 @@ contract SCDEngine is ReentrancyGuard {
     function getAdditionalFeedPrecision() external pure returns (uint256) {
         return ADITIONAL_FED_PRECISION;
     }
+
+    function getLiquidationThreshold() external pure returns (uint256) {
+        return LIQUIDATION_THRESHOLD;
+    }
+
+    function getLiquidationBonus() external pure returns (uint256) {
+        return LIQUIDATION_BONUS;
+    }
+
+    function getMinHealthFactor() external pure returns (uint256) {
+        return MIN_HEALTH_FACTOR;
+    }
+
+    function getCollateralTokens() external view returns (address[] memory) {
+        return s_collateralTokens;
+    }
+
+    function getDsc() external view returns (address) {
+        return address(i_dsc);
+    }
+
+    function getCollateralTokenPriceFeed(address token) external view returns (address) {
+        return s_priceFeeds[token];
+    }
+
+    function getHealthFactor(address user) external view returns (uint256) {
+        return _healthFactor(user);
+    }
 }
+
