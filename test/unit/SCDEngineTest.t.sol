@@ -277,7 +277,7 @@ contract SCDEngineTest is StdCheats, Test {
         // Arrange - Setup
         address owner = msg.sender;
         vm.prank(owner);
-        MockFailedTransfer mockDsc = new MockFailedTransfer();
+        MockFailedTransfer mockScd = new MockFailedTransfer();
         tokenAddresses = [address(mockScd)];
         priceFeedAddresses = [ethUsdPriceFeed];
         vm.prank(owner);
@@ -286,17 +286,17 @@ contract SCDEngineTest is StdCheats, Test {
             priceFeedAddresses,
             address(mockScd)
         );
-        mockDsc.mint(user, amountCollateral);
+        mockScd.mint(user, amountCollateral);
 
         vm.prank(owner);
-        mockDsc.transferOwnership(address(mockScde));
+        mockScd.transferOwnership(address(mockScde));
         // Arrange - User
         vm.startPrank(user);
         ERC20Mock(address(mockScd)).approve(address(mockScde), amountCollateral);
         // Act / Assert
-        mockScde.depositCollateral(address(mockDsc), amountCollateral);
+        mockScde.depositCollateral(address(mockScd), amountCollateral);
         vm.expectRevert(SCDEngine.SCDEngine__TransferFromFailed.selector);
-        mockDsce.redeemCollateral(address(mockDsc), amountCollateral);
+        mockScde.redeemCollateral(address(mockScd), amountCollateral);
         vm.stopPrank();
     }
 
