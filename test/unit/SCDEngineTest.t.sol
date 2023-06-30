@@ -132,7 +132,7 @@ contract SCDEngineTest is StdCheats, Test {
     modifier depositedCollateral() {
         vm.startPrank(user);
         ERC20Mock(weth).approve(address(scde), amountCollateral);
-        scde.depositCollateral(weth, 0);
+        scde.depositCollateral(weth, amountCollateral);
         vm.stopPrank();
         _;
     }
