@@ -131,7 +131,7 @@ contract SCDEngineTest is StdCheats, Test {
         vm.stopPrank();
     }
 
-    modifier depositCollateral() {
+    modifier depositedCollateral() {
         vm.startPrank(user);
         ERC20Mock(weth).approve(address(scde), amountCollateral);
         scde.depositCollateral(weth, 0);
@@ -139,12 +139,12 @@ contract SCDEngineTest is StdCheats, Test {
         _;
     }
 
-    function testCanDepositCollateralWithoutMinting() public depositCollateral {
+    function testCanDepositCollateralWithoutMinting() public depositedCollateral {
         uint256 userBalance = scd.balanceOf(user);
         assertEq(userBalance, 0);
     }
 
-    function testCanDepositedCollateralAndGetAccountInfo() public depositCollateral {
+    function testCanDepositedCollateralAndGetAccountInfo() public depositedCollateral {
         (uint256 totalScdMinted, uint256 collateralValueInUsd) = scde.getAccountInformation(user);
 
         uint256 expectedTotalScdMinted = 0;
@@ -234,6 +234,34 @@ contract SCDEngineTest is StdCheats, Test {
         scde.mintSCD(amountToMint);
         vm.stopPrank();
     }
+
+    function testCanMintDsc() public depositedCollateral {
+        vm.prank(user);
+        scde.mintSCD(amountToMint);
+
+        uint256 userBalance = scd.balanceOf(user);
+        assertEq(userBalance, amountToMint);
+    }
+
+    ///////////////////////////////////
+    // burnDsc Tests //
+    ///////////////////////////////////
+
+     function testRevertsIfBurnAmountIsZero() public {
+        vm.startPrank(user);
+        ERC20Mock(weth).approve(address(scde), amountCollateral);
+        scde.depositCollateralAndMintSCD(weth, amountCollateral, amountToMint);
+        vm.expectRevert(SCDEngine.SCDEngine__NeedsMoreThanZero.selector);
+        scde.burnSCD(0);
+        vm.stopPrank();
+    }
+
+     function testCantBurnMoreThanUserHas() public {
+        vm.prank(user);
+        vm.expectRevert();
+        scde.burnSCD(1);
+    }
+
 
 
 }
