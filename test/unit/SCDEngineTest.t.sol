@@ -69,6 +69,12 @@ contract SCDEngineTest is StdCheats, Test {
     // Price Test Cases //
     //////////////////////
 
+    function testGetTokenAmountFromUsd() public {
+        uint256 expectedWeth = 0.05 ether;
+        uint256 amountWeth = scde.getTokenAmountFromUsd(weth, 100 ether);
+        assertEq(amountWeth, expectedWeth);
+    }
+
     function testGetUsdValue() public {
         uint256 ethAmount = 15e18;
         uint256 expectedUsd = 30000e18;
@@ -76,12 +82,7 @@ contract SCDEngineTest is StdCheats, Test {
         assertEq(expectedUsd, actualUsd);
     }
 
-    function testGetUsdValue() public {
-        uint256 usdAmount = 100 ether;
-        uint256 expectedWeth = 0.05 ether;
-        uint256 actualWeth = scde.getTokenAmountFromUsd(weth, usdAmount);
-        assertEq(expectedWeth, actualWeth);
-    }
+    
 
     ////////////////////////////
     // DepositCollateral Test //
@@ -122,10 +123,10 @@ contract SCDEngineTest is StdCheats, Test {
         vm.stopPrank();
     }
 
-    function testRevertWithUnapprovedCollateral() public {
+    function testRevertsWithUnapprovedCollateral() public {
         ERC20Mock ranToken = new ERC20Mock("RAN", "RAN", user, amountCollateral);
         vm.startPrank(user);
-        vm.expectRevert(SCDEngine.SCDEngine__NotAllowedToken.selector);
+        vm.expectRevert(SCDEngine.SCDEngine__TokenNotAllowed.selector);
         scde.depositCollateral(address(ranToken), amountCollateral);
         vm.stopPrank();
     }
@@ -164,8 +165,8 @@ contract SCDEngineTest is StdCheats, Test {
 
         uint256 expectedHealthFactor =
             scde.calculateHealthFactor(amountToMint, scde.getUsdValue(weth, amountCollateral));
-        vm.expectRevert(abi.encodeWithSelector(SCDEngine.SCDngine__BreaksHealthFactor.selector, expectedHealthFactor));
-        scde.depositCollateralAndMintDsc(weth, amountCollateral, amountToMint);
+        vm.expectRevert(abi.encodeWithSelector(SCDEngine.SCDEngine__BreakHealthFactor.selector, expectedHealthFactor));
+        scde.depositCollateralAndMintSCD(weth, amountCollateral, amountToMint);
         vm.stopPrank();
     }
 }
