@@ -478,4 +478,10 @@ contract SCDEngineTest is StdCheats, Test {
         uint256 liquidationThreshold = scde.getLiquidationThreshold();
         assertEq(liquidationThreshold, LIQUIDATION_THRESHOLD);
     }
+
+    function testGetAccountCollateralValueFromInformation() public depositedCollateral {
+        (, uint256 collateralValue) = scde.getAccountInformation(user);
+        uint256 expectedCollateralValue = scde.getUsdValue(weth, amountCollateral);
+        assertEq(collateralValue, expectedCollateralValue);
+    }
 }
