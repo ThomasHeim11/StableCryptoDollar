@@ -21,7 +21,6 @@ contract SCDEngineTest is StdCheats, Test {
     SCDEngine public scde;
     StableCryptoDollar public scd;
     HelperConfig public helperConfig;
-    
 
     address ethUsdPriceFeed;
     address btcUsdPriceFeed;
@@ -36,7 +35,7 @@ contract SCDEngineTest is StdCheats, Test {
     uint256 public constant STARTING_USER_BALANCE = 10 ether;
     uint256 public constant MIN_HEALTH_FACTOR = 1e18;
     uint256 public constant LIQUIDATION_THRESHOLD = 50;
-     // Liquidation
+    // Liquidation
     address public liquidator = makeAddr("liquidator");
     uint256 public collateralToCover = 20 ether;
 
@@ -44,8 +43,11 @@ contract SCDEngineTest is StdCheats, Test {
         DeploySCD deployer = new DeploySCD();
         (scd, scde, helperConfig) = deployer.run();
         (ethUsdPriceFeed, btcUsdPriceFeed, weth, wbtc, deployerKey) = helperConfig.activeNetworkConfig();
-
-        ERC20Mock(weth).mint(USER, STARTING_ERC20_BALANCE);
+        if (block.chainid == 31337) {
+            vm.deal(user, STARTING_USER_BALANCE);
+        }
+        ERC20Mock(weth).mint(user, STARTING_USER_BALANCE);
+        ERC20Mock(wbtc).mint(user, STARTING_USER_BALANCE);
     }
 
     //////////////////////
@@ -74,7 +76,7 @@ contract SCDEngineTest is StdCheats, Test {
         assertEq(expectedUsd, actualUsd);
     }
 
-    function testgetTokenAmountFromUsd() public {
+    function testGetUsdValue() public {
         uint256 usdAmount = 100 ether;
         uint256 expectedWeth = 0.05 ether;
         uint256 actualWeth = scde.getTokenAmountFromUsd(weth, usdAmount);
@@ -98,22 +100,22 @@ contract SCDEngineTest is StdCheats, Test {
             priceFeedAddresses,
             address(mockDsc)
         );
-        mockDsc.mint(USER, AMOUNT_COLLATERAL);
+        mockDsc.mint(user, amountCollateral);
 
         vm.prank(owner);
         mockDsc.transferOwnership(address(mockDsce));
         // Arrange - User
-        vm.startPrank(USER);
-        ERC20Mock(address(mockDsc)).approve(address(mockDsce), AMOUNT_COLLATERAL);
+        vm.startPrank(user);
+        ERC20Mock(address(mockDsc)).approve(address(mockDsce), amountCollateral);
         // Act / Assert
         vm.expectRevert(SCDEngine.SCDEngine__TransferFromFailed.selector);
-        mockDsce.depositCollateral(address(mockDsc), AMOUNT_COLLATERAL);
+        mockDsce.depositCollateral(address(mockDsc), amountCollateral);
         vm.stopPrank();
     }
 
     function testRevertsIfCollateralZero() public {
-        vm.startPrank(USER);
-        ERC20Mock(weth).approve(address(scd), AMOUNT_COLLATERAL);
+        vm.startPrank(user);
+        ERC20Mock(weth).approve(address(scd), amountCollateral);
 
         vm.expectRevert(SCDEngine.SCDEngine__NeedsMoreThanZero.selector);
         scde.depositCollateral(weth, 0);
@@ -121,33 +123,33 @@ contract SCDEngineTest is StdCheats, Test {
     }
 
     function testRevertWithUnapprovedCollateral() public {
-        ERC20Mock ranToken = new ERC20Mock("RAN", "RAN", USER, AMOUNT_COLLATERAL);
-        vm.startPrank(USER);
+        ERC20Mock ranToken = new ERC20Mock("RAN", "RAN", user, amountCollateral);
+        vm.startPrank(user);
         vm.expectRevert(SCDEngine.SCDEngine__NotAllowedToken.selector);
-        scde.depositCollateral(address(ranToken), AMOUNT_COLLATERAL);
+        scde.depositCollateral(address(ranToken), amountCollateral);
         vm.stopPrank();
     }
 
     modifier depositCollateral() {
-        vm.startPrank(USER);
-        ERC20Mock(weth).approve(address(scde), AMOUNT_COLLATERAL);
-        scde.depositCollateral(weth, AMOUNT_COLLATERAL);
+        vm.startPrank(user);
+        ERC20Mock(weth).approve(address(scde), amountCollateral);
+        scde.depositCollateral(weth, 0);
         vm.stopPrank();
         _;
     }
 
     function testCanDepositCollateralWithoutMinting() public depositCollateral {
-        uint256 userBalance = scd.balanceOf(USER);
+        uint256 userBalance = scd.balanceOf(user);
         assertEq(userBalance, 0);
     }
 
     function testCanDepositedCollateralAndGetAccountInfo() public depositCollateral {
-        (uint256 totalScdMinted, uint256 collateralValueInUsd) = scde.getAccountInformation(USER);
+        (uint256 totalScdMinted, uint256 collateralValueInUsd) = scde.getAccountInformation(user);
 
         uint256 expectedTotalScdMinted = 0;
         uint256 expectedDepositAmount = scde.getTokenAmountFromUsd(weth, collateralValueInUsd);
         assertEq(totalScdMinted, expectedTotalScdMinted);
-        assertEq(AMOUNT_COLLATERAL, expectedDepositAmount);
+        assertEq(expectedDepositAmount, amountCollateral);
     }
 
     ///////////////////////////////////////
@@ -156,16 +158,14 @@ contract SCDEngineTest is StdCheats, Test {
 
     function testRevertsIfMintedDscBreaksHealthFactor() public {
         (, int256 price,,,) = MockV3Aggregator(ethUsdPriceFeed).latestRoundData();
-        amountToMint = (AMOUNT_COLLATERAL * (uint256(price) * scde.getAdditionalFeedPrecision())) / scde.getPrecision();
-        vm.startPrank(USER);
-        ERC20Mock(weth).approve(address(scde), AMOUNT_COLLATERAL);
+        amountToMint = (amountCollateral * (uint256(price) * scde.getAdditionalFeedPrecision())) / scde.getPrecision();
+        vm.startPrank(user);
+        ERC20Mock(weth).approve(address(scde), amountCollateral);
 
         uint256 expectedHealthFactor =
-            scde.calculateHealthFactor(amountToMint, scde.getUsdValue(weth, AMOUNT_COLLATERAL));
+            scde.calculateHealthFactor(amountToMint, scde.getUsdValue(weth, amountCollateral));
         vm.expectRevert(abi.encodeWithSelector(SCDEngine.SCDngine__BreaksHealthFactor.selector, expectedHealthFactor));
-        scde.depositCollateralAndMintDsc(weth, AMOUNT_COLLATERAL, amountToMint);
+        scde.depositCollateralAndMintDsc(weth, amountCollateral, amountToMint);
         vm.stopPrank();
     }
-
-
 }
