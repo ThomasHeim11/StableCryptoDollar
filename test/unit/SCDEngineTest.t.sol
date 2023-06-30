@@ -360,7 +360,7 @@ contract SCDEngineTest is StdCheats, Test {
         assert(userHealthFactor == 0.9 ether);
     }
 
-       ///////////////////////
+    ///////////////////////
     // Liquidation Tests //
     ///////////////////////
 
@@ -400,5 +400,49 @@ contract SCDEngineTest is StdCheats, Test {
         vm.expectRevert(SCDEngine.SCDEngine__HealthFactorNotImproved.selector);
         mockScde.liquidate(weth, user, debtToCover);
         vm.stopPrank();
+    }
+
+    modifier liquidated() {
+        vm.startPrank(user);
+        ERC20Mock(weth).approve(address(scde), amountCollateral);
+        scde.depositCollateralAndMintSCD(weth, amountCollateral, amountToMint);
+        vm.stopPrank();
+        int256 ethUsdUpdatedPrice = 18e8; // 1 ETH = $18
+
+        MockV3Aggregator(ethUsdPriceFeed).updateAnswer(ethUsdUpdatedPrice);
+        uint256 userHealthFactor = scde.getHealthFactor(user);
+
+        ERC20Mock(weth).mint(liquidator, collateralToCover);
+
+        vm.startPrank(liquidator);
+        ERC20Mock(weth).approve(address(scde), collateralToCover);
+        scde.depositCollateralAndMintSCD(weth, collateralToCover, amountToMint);
+        scd.approve(address(scde), amountToMint);
+        scde.liquidate(weth, user, amountToMint); // We are covering their whole debt
+        vm.stopPrank();
+        _;
+    }
+
+    function testLiquidationPayoutIsCorrect() public liquidated {
+        uint256 liquidatorWethBalance = ERC20Mock(weth).balanceOf(liquidator);
+        uint256 expectedWeth = scde.getTokenAmountFromUsd(weth, amountToMint)
+            + (scde.getTokenAmountFromUsd(weth, amountToMint) / scde.getLiquidationBonus());
+        uint256 hardCodedExpected = 6111111111111111110;
+        assertEq(liquidatorWethBalance, hardCodedExpected);
+        assertEq(liquidatorWethBalance, expectedWeth);
+    }
+
+    function testUserStillHasSomeEthAfterLiquidation() public liquidated {
+        // Get how much WETH the user lost
+        uint256 amountLiquidated = scde.getTokenAmountFromUsd(weth, amountToMint)
+            + (scde.getTokenAmountFromUsd(weth, amountToMint) / scde.getLiquidationBonus());
+
+        uint256 usdAmountLiquidated = scde.getUsdValue(weth, amountLiquidated);
+        uint256 expectedUserCollateralValueInUsd = scde.getUsdValue(weth, amountCollateral) - (usdAmountLiquidated);
+
+        (, uint256 userCollateralValueInUsd) = scde.getAccountInformation(user);
+        uint256 hardCodedExpectedValue = 70000000000000000020;
+        assertEq(userCollateralValueInUsd, expectedUserCollateralValueInUsd);
+        assertEq(userCollateralValueInUsd, hardCodedExpectedValue);
     }
 }
