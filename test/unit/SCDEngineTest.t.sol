@@ -484,4 +484,14 @@ contract SCDEngineTest is StdCheats, Test {
         uint256 expectedCollateralValue = scde.getUsdValue(weth, amountCollateral);
         assertEq(collateralValue, expectedCollateralValue);
     }
+
+    function testGetCollateralBalanceOfUser() public {
+        vm.startPrank(user);
+        ERC20Mock(weth).approve(address(scde), amountCollateral);
+        scde.depositCollateral(weth, amountCollateral);
+        vm.stopPrank();
+        uint256 collateralBalance = scde.getCollateralBalanceOfUser(user, weth);
+        assertEq(collateralBalance, amountCollateral);
+    }
+
 }
