@@ -318,4 +318,16 @@ contract SCDEngineTest is StdCheats, Test {
         assertEq(userBalance, amountCollateral);
         vm.stopPrank();
     }
+
+     ///////////////////////////////////
+    // redeemCollateralForDsc Tests  //
+    //////////////////////////////////
+
+     function testMustRedeemMoreThanZero() public depositedCollateralAndMintedDsc {
+        vm.startPrank(user);
+        scd.approve(address(scde), amountToMint);
+        vm.expectRevert(SCDEngine.SCDEngine__NeedsMoreThanZero.selector);
+        scde.redeemCollateralForSCD(weth, 0, amountToMint);
+        vm.stopPrank();
+    }
 }
