@@ -84,5 +84,20 @@ contract SCDEngineTest is Test {
         vm.stopPrank();
     }
 
-    function testCanDepositCollateral()
+    modifier depositCollateral() {
+        vm.startPrank(USER);
+        ERC20Mock(weth).approve(address(scde), AMOUNT_COLLATERAL);
+        scde.depositCollateral(weth, AMOUNT_COLLATERAL);
+        vm.stopPrank();
+        _;
+    }
+
+    function testCanDepositedCollateralAndGetAccountInfo() public depositCollateral {
+        (uint256 totalScdMinted, uint256 collateralValueInUsd) = scde.getAccountInformation(USER);
+
+        uint256 expectedTotalScdMinted = 0;
+        uint256 expectedDepositAmount = scde.getTokenAmountFromUsd(weth, collateralValueInUsd);
+        assertEq(totalScdMinted, expectedTotalScdMinted);
+        assertEq(AMOUNT_COLLATERAL, expectedDepositAmount);
+    }
 }
