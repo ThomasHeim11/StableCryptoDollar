@@ -20,8 +20,8 @@ import {Test, console} from "forge-std/Test.sol";
 contract SCDEngineTest is StdCheats, Test {
     SCDEngine public scde;
     StableCryptoDollar public scd;
-    HelperConfig config;
-    // DeploySCD deployer;
+    HelperConfig public helperConfig;
+    
 
     address ethUsdPriceFeed;
     address btcUsdPriceFeed;
@@ -33,15 +33,17 @@ contract SCDEngineTest is StdCheats, Test {
     uint256 amountToMint = 100 ether;
     address public user = address(1);
 
-    address public USER = makeAddr("user");
-    uint256 public constant AMOUNT_COLLATERAL = 10 ether;
-    uint256 public constant STARTING_ERC20_BALANCE = 10 ether;
-    uint256 amountToMint = 100 ether;
+    uint256 public constant STARTING_USER_BALANCE = 10 ether;
+    uint256 public constant MIN_HEALTH_FACTOR = 1e18;
+    uint256 public constant LIQUIDATION_THRESHOLD = 50;
+     // Liquidation
+    address public liquidator = makeAddr("liquidator");
+    uint256 public collateralToCover = 20 ether;
 
     function setUp() public {
-        deployer = new DeploySCD();
-        (scd, scde, config) = deployer.run();
-        (ethUsdPriceFeed, btcUsdPriceFeed, weth,,) = config.activeNetworkConfig();
+        DeploySCD deployer = new DeploySCD();
+        (scd, scde, helperConfig) = deployer.run();
+        (ethUsdPriceFeed, btcUsdPriceFeed, weth, wbtc, deployerKey) = helperConfig.activeNetworkConfig();
 
         ERC20Mock(weth).mint(USER, STARTING_ERC20_BALANCE);
     }
