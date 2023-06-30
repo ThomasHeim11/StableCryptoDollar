@@ -43,6 +43,8 @@ contract SCDEngine is ReentrancyGuard {
     //////////////////////
     // State Variables  //
     //////////////////////
+    StableCryptoDollar private immutable i_SCDE;
+
     uint256 private constant LIQUIDATION_THRESHOLD = 50; // 200% collateralization ratio
     uint256 private constant LIQUIDATION_BONUS = 10; // this means a 10% bonus
     uint256 private constant MIN_HELATH_FACTOR = 1e18;
@@ -51,13 +53,11 @@ contract SCDEngine is ReentrancyGuard {
     uint256 private constant FEED_PRECISION = 1e8;
 
     uint256 private constant LIQUIDATION_PRECISION = 100;
-    
+
     mapping(address token => address s_priceFeed) private s_priceFeeds;
     mapping(address user => mapping(address token => uint256)) private s_collateralDeposited;
     mapping(address user => uint256 amountSCDEMinted) private s_SCDMinted;
     address[] private s_collateralTokens;
-
-    StableCryptoDollar private immutable i_SCDE;
 
     //////////////////////
     // Events           //
