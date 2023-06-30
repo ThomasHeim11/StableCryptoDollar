@@ -1,13 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+/** @title MockV3Aggregator */
 /**
- * @title MockV3Aggregator
  * @notice Based on the FluxAggregator contract
  * @notice Use this contract when you need to test
  * other contract's ability to read data from an
  * aggregator contract, but how the aggregator got
  * its answer is unimportant
+ */
+ 
+/**
+ * @dev MockV3Aggregator contract for testing purposes.
  */
 contract MockV3Aggregator {
     uint256 public constant version = 0;
@@ -21,11 +25,20 @@ contract MockV3Aggregator {
     mapping(uint256 => uint256) public getTimestamp;
     mapping(uint256 => uint256) private getStartedAt;
 
+    /**
+     * @dev Constructor function.
+     * @param _decimals The number of decimal places for the answer.
+     * @param _initialAnswer The initial answer to set.
+     */
     constructor(uint8 _decimals, int256 _initialAnswer) {
         decimals = _decimals;
         updateAnswer(_initialAnswer);
     }
 
+    /**
+     * @dev Updates the answer and related data.
+     * @param _answer The new answer to set.
+     */
     function updateAnswer(int256 _answer) public {
         latestAnswer = _answer;
         latestTimestamp = block.timestamp;
@@ -35,6 +48,13 @@ contract MockV3Aggregator {
         getStartedAt[latestRound] = block.timestamp;
     }
 
+    /**
+     * @dev Updates the round data.
+     * @param _roundId The round ID to update.
+     * @param _answer The new answer to set.
+     * @param _timestamp The new timestamp to set.
+     * @param _startedAt The new startedAt value to set.
+     */
     function updateRoundData(uint80 _roundId, int256 _answer, uint256 _timestamp, uint256 _startedAt) public {
         latestRound = _roundId;
         latestAnswer = _answer;
@@ -44,6 +64,15 @@ contract MockV3Aggregator {
         getStartedAt[latestRound] = _startedAt;
     }
 
+    /**
+     * @dev Retrieves the round data for a specific round ID.
+     * @param _roundId The round ID to retrieve data for.
+     * @return roundId The round ID.
+     * @return answer The answer for the given round ID.
+     * @return startedAt The startedAt value for the given round ID.
+     * @return updatedAt The updatedAt value for the given round ID.
+     * @return answeredInRound The answeredInRound value for the given round ID.
+     */
     function getRoundData(uint80 _roundId)
         external
         view
@@ -52,10 +81,20 @@ contract MockV3Aggregator {
         return (_roundId, getAnswer[_roundId], getStartedAt[_roundId], getTimestamp[_roundId], _roundId);
     }
 
+    /**
+     * @dev Retrieves the latest round data.
+     * @return roundId The latest round ID.
+     * @return answer The latest answer.
+     * @return startedAt The startedAt value for the latest round.
+     * @return updatedAt The updatedAt value for the latest round.
+     * @return answeredInRound The answeredInRound value for the latest round.
+     */
     function latestRoundData()
         external
         view
-        returns (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound)
+        returns (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt
+
+, uint80 answeredInRound)
     {
         return (
             uint80(latestRound),
@@ -66,6 +105,10 @@ contract MockV3Aggregator {
         );
     }
 
+    /**
+     * @dev Returns the contract description.
+     * @return The contract description.
+     */
     function description() external pure returns (string memory) {
         return "v0.6/tests/MockV3Aggregator.sol";
     }
