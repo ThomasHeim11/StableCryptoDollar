@@ -82,8 +82,6 @@ contract SCDEngineTest is StdCheats, Test {
         assertEq(expectedUsd, actualUsd);
     }
 
-    
-
     ////////////////////////////
     // DepositCollateral Test //
     ////////////////////////////
@@ -170,7 +168,7 @@ contract SCDEngineTest is StdCheats, Test {
         vm.stopPrank();
     }
 
-     modifier depositedCollateralAndMintedDsc() {
+    modifier depositedCollateralAndMintedDsc() {
         vm.startPrank(user);
         ERC20Mock(weth).approve(address(scde), amountCollateral);
         scde.depositCollateralAndMintSCD(weth, amountCollateral, amountToMint);
@@ -209,7 +207,7 @@ contract SCDEngineTest is StdCheats, Test {
         vm.stopPrank();
     }
 
-        function testRevertsIfMintAmountIsZero() public {
+    function testRevertsIfMintAmountIsZero() public {
         vm.startPrank(user);
         ERC20Mock(weth).approve(address(scde), amountCollateral);
         scde.depositCollateralAndMintSCD(weth, amountCollateral, amountToMint);
@@ -247,7 +245,7 @@ contract SCDEngineTest is StdCheats, Test {
     // burnDsc Tests //
     ///////////////////////////////////
 
-     function testRevertsIfBurnAmountIsZero() public {
+    function testRevertsIfBurnAmountIsZero() public {
         vm.startPrank(user);
         ERC20Mock(weth).approve(address(scde), amountCollateral);
         scde.depositCollateralAndMintSCD(weth, amountCollateral, amountToMint);
@@ -256,7 +254,7 @@ contract SCDEngineTest is StdCheats, Test {
         vm.stopPrank();
     }
 
-     function testCantBurnMoreThanUserHas() public {
+    function testCantBurnMoreThanUserHas() public {
         vm.prank(user);
         vm.expectRevert();
         scde.burnSCD(1);
@@ -277,7 +275,7 @@ contract SCDEngineTest is StdCheats, Test {
     //////////////////////////////////
 
     // this test needs it's own setup
-       function testRevertsIfTransferFails() public {
+    function testRevertsIfTransferFails() public {
         // Arrange - Setup
         address owner = msg.sender;
         vm.prank(owner);
@@ -304,7 +302,12 @@ contract SCDEngineTest is StdCheats, Test {
         vm.stopPrank();
     }
 
-
-
-
+    function testRevertsIfRedeemAmountIsZero() public {
+        vm.startPrank(user);
+        ERC20Mock(weth).approve(address(scde), amountCollateral);
+        scde.depositCollateralAndMintSCD(weth, amountCollateral, amountToMint);
+        vm.expectRevert(SCDEngine.SCDEngine__NeedsMoreThanZero.selector);
+        scde.redeemCollateral(weth, 0);
+        vm.stopPrank();
+    }
 }
