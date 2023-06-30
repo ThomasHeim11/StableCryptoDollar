@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.19;
 
-import {OracleLib, AggregatorV3Interface} from
+import {AggregatorV3Interface} from
     "lib/chainlink-brownie-contracts/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -36,7 +36,7 @@ contract SCDEngine is ReentrancyGuard {
     error SCDEngine__HealthFactorOk();
     error SCDEngine__HealthFactorNotImproved();
 
-     ///////////////////
+    ///////////////////
     // Types         //
     ///////////////////
     using OracleLib for AggregatorV3Interface;
