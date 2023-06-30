@@ -122,10 +122,10 @@ contract SCDEngineTest is StdCheats, Test {
     }
 
     function testRevertsWithUnapprovedCollateral() public {
-        ERC20Mock ranToken = new ERC20Mock("RAN", "RAN", user, amountCollateral);
+        ERC20Mock randToken = new ERC20Mock("RAN", "RAN", user, 100e18);
         vm.startPrank(user);
-        vm.expectRevert(SCDEngine.SCDEngine__TokenNotAllowed.selector);
-        scde.depositCollateral(address(ranToken), amountCollateral);
+        vm.expectRevert(abi.encodeWithSelector(SCDEngine.SCDEngine__TokenNotAllowed.selector, address(randToken)));
+        scde.depositCollateral(address(randToken), amountCollateral);
         vm.stopPrank();
     }
 
