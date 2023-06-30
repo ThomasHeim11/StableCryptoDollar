@@ -319,11 +319,11 @@ contract SCDEngineTest is StdCheats, Test {
         vm.stopPrank();
     }
 
-     ///////////////////////////////////
+    ///////////////////////////////////
     // redeemCollateralForDsc Tests  //
     //////////////////////////////////
 
-     function testMustRedeemMoreThanZero() public depositedCollateralAndMintedDsc {
+    function testMustRedeemMoreThanZero() public depositedCollateralAndMintedDsc {
         vm.startPrank(user);
         scd.approve(address(scde), amountToMint);
         vm.expectRevert(SCDEngine.SCDEngine__NeedsMoreThanZero.selector);
@@ -341,5 +341,64 @@ contract SCDEngineTest is StdCheats, Test {
 
         uint256 userBalance = scd.balanceOf(user);
         assertEq(userBalance, 0);
+    }
+
+    ////////////////////////
+    // healthFactor Tests //
+    ////////////////////////
+
+    function testProperlyReportsHealthFactor() public depositedCollateralAndMintedDsc {
+        uint256 expectedHealthFactor = 100 ether;
+        uint256 healthFactor = scde.getHealthFactor(user);
+        assertEq(healthFactor, expectedHealthFactor);
+    }
+
+    function testHealthFactorCanGoBelowOne() public depositedCollateralAndMintedDsc {
+        int256 ethUsdUpdatedPrice = 18e8;
+        MockV3Aggregator(ethUsdPriceFeed).updateAnswer(ethUsdUpdatedPrice);
+        uint256 userHealthFactor = scde.getHealthFactor(user);
+        assert(userHealthFactor == 0.9 ether);
+    }
+
+       ///////////////////////
+    // Liquidation Tests //
+    ///////////////////////
+
+    // This test needs it's own setup
+    function testMustImproveHealthFactorOnLiquidation() public {
+        // Arrange - Setup
+        MockMoreDebtSCD mockScd = new MockMoreDebtSCD(ethUsdPriceFeed);
+        tokenAddresses = [weth];
+        priceFeedAddresses = [ethUsdPriceFeed];
+        address owner = msg.sender;
+        vm.prank(owner);
+        SCDEngine mockScde = new SCDEngine(
+            tokenAddresses,
+            priceFeedAddresses,
+            address(mockScd)
+        );
+        mockScd.transferOwnership(address(mockScde));
+        // Arrange - User
+        vm.startPrank(user);
+        ERC20Mock(weth).approve(address(mockScde), amountCollateral);
+        mockScde.depositCollateralAndMintSCD(weth, amountCollateral, amountToMint);
+        vm.stopPrank();
+
+        // Arrange - Liquidator
+        collateralToCover = 1 ether;
+        ERC20Mock(weth).mint(liquidator, collateralToCover);
+
+        vm.startPrank(liquidator);
+        ERC20Mock(weth).approve(address(mockScde), collateralToCover);
+        uint256 debtToCover = 10 ether;
+        mockScde.depositCollateralAndMintSCD(weth, collateralToCover, amountToMint);
+        mockScd.approve(address(mockScde), debtToCover);
+        // Act
+        int256 ethUsdUpdatedPrice = 18e8; // 1 ETH = $18
+        MockV3Aggregator(ethUsdPriceFeed).updateAnswer(ethUsdUpdatedPrice);
+        // Act/Assert
+        vm.expectRevert(SCDEngine.SCDEngine__HealthFactorNotImproved.selector);
+        mockScde.liquidate(weth, user, debtToCover);
+        vm.stopPrank();
     }
 }
