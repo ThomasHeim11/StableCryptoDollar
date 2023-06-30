@@ -2,8 +2,7 @@
 
 pragma solidity 0.8.19;
 
-import {AggregatorV3Interface} from
-    "lib/chainlink-brownie-contracts/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
+import {OracleLib, AggregatorV3Interface} from "./libraries/OracleLib.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {StableCryptoDollar} from "./StableCryptoDollar.sol";
@@ -44,13 +43,15 @@ contract SCDEngine is ReentrancyGuard {
     //////////////////////
     // State Variables  //
     //////////////////////
-    uint256 private constant ADITIONAL_FED_PRECISION = 1e10;
-    uint256 private constant PRECISION = 1e18;
     uint256 private constant LIQUIDATION_THRESHOLD = 50; // 200% collateralization ratio
-    uint256 private constant LIQUIDATION_PRECISION = 100;
-    uint256 private constant MIN_HELATH_FACTOR = 1e18;
     uint256 private constant LIQUIDATION_BONUS = 10; // this means a 10% bonus
+    uint256 private constant MIN_HELATH_FACTOR = 1e18;
+    uint256 private constant PRECISION = 1e18;
+    uint256 private constant ADITIONAL_FED_PRECISION = 1e10;
+    uint256 private constant FEED_PRECISION = 1e8;
 
+    uint256 private constant LIQUIDATION_PRECISION = 100;
+    
     mapping(address token => address s_priceFeed) private s_priceFeeds;
     mapping(address user => mapping(address token => uint256)) private s_collateralDeposited;
     mapping(address user => uint256 amountSCDEMinted) private s_SCDMinted;
