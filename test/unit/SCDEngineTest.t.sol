@@ -10,6 +10,15 @@ import {ERC20Mock} from "@openzeppelin/contracts/mocks/ERC20Mock.sol";
 
 import {MockV3Aggregator} from "../mocks/MockV3Aggregator.sol";
 import {MockMoreDebtSCD} from "../mocks/MockMoreDebtSCD.sol";
+import {MockFailedMintSCD} from "../mocks/MockFailedMintSCD.sol";
+import {MockFailedTransferFrom} from "../mocks/MockFailedTransferFrom.sol";
+import {MockFailedTransfer} from "../mocks/MockFailedTransfer.sol";
+import {StdCheats} from "forge-std/StdCheats.sol";
+
+
+
+
+
 import {Test, console} from "forge-std/Test.sol";
 
 contract SCDEngineTest is Test {
