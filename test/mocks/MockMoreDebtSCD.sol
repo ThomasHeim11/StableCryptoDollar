@@ -39,14 +39,14 @@ import {MockV3Aggregator} from "./MockV3Aggregator.sol";
  *
  * This is the contract meant to be owned by DSCEngine. It is a ERC20 token that can be minted and burned by the DSCEngine smart contract.
  */
-contract MockMoreDebtDSC is ERC20Burnable, Ownable {
-    error DecentralizedStableCoin__AmountMustBeMoreThanZero();
-    error DecentralizedStableCoin__BurnAmountExceedsBalance();
-    error DecentralizedStableCoin__NotZeroAddress();
+contract StableCryptoDollar is ERC20Burnable, Ownable {
+    error StableCryptoDollar__AmountMustBeMoreThanZero();
+    error StableCryptoDollar__BurnAmountExceedsBalance();
+    error StableCryptoDollar_NotZeroAddress();
 
     address mockAggregator;
 
-    constructor(address _mockAggregator) ERC20("DecentralizedStableCoin", "DSC") {
+    constructor(address _mockAggregator) ERC20("StableCryptoDollar", "SCD") {
         mockAggregator = _mockAggregator;
     }
 
@@ -55,20 +55,20 @@ contract MockMoreDebtDSC is ERC20Burnable, Ownable {
         MockV3Aggregator(mockAggregator).updateAnswer(0);
         uint256 balance = balanceOf(msg.sender);
         if (_amount <= 0) {
-            revert DecentralizedStableCoin__AmountMustBeMoreThanZero();
+            revert StableCryptoDollar__AmountMustBeMoreThanZero();
         }
         if (balance < _amount) {
-            revert DecentralizedStableCoin__BurnAmountExceedsBalance();
+            revert StableCryptoDollar__BurnAmountExceedsBalance();
         }
         super.burn(_amount);
     }
 
     function mint(address _to, uint256 _amount) external onlyOwner returns (bool) {
         if (_to == address(0)) {
-            revert DecentralizedStableCoin__NotZeroAddress();
+            revert StableCryptoDollar_NotZeroAddress();
         }
         if (_amount <= 0) {
-            revert DecentralizedStableCoin__AmountMustBeMoreThanZero();
+            revert StableCryptoDollar__AmountMustBeMoreThanZero();
         }
         _mint(_to, _amount);
         return true;
