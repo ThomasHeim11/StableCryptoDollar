@@ -169,4 +169,71 @@ contract SCDEngineTest is StdCheats, Test {
         scde.depositCollateralAndMintSCD(weth, amountCollateral, amountToMint);
         vm.stopPrank();
     }
+
+     modifier depositedCollateralAndMintedDsc() {
+        vm.startPrank(user);
+        ERC20Mock(weth).approve(address(scde), amountCollateral);
+        scde.depositCollateralAndMintSCD(weth, amountCollateral, amountToMint);
+        vm.stopPrank();
+        _;
+    }
+
+    function testCanMintWithDepositedCollateral() public depositedCollateralAndMintedDsc {
+        uint256 userBalance = scd.balanceOf(user);
+        assertEq(userBalance, amountToMint);
+    }
+
+    ///////////////////////////////////
+    // mintDsc Tests //////////////////
+    ///////////////////////////////////
+    // This test needs it's own custom setup
+    function testRevertsIfMintFails() public {
+        // Arrange - Setup
+        MockFailedMintSCD mockDsc = new MockFailedMintSCD();
+        tokenAddresses = [weth];
+        priceFeedAddresses = [ethUsdPriceFeed];
+        address owner = msg.sender;
+        vm.prank(owner);
+        SCDEngine mockDsce = new SCDEngine(
+            tokenAddresses,
+            priceFeedAddresses,
+            address(mockDsc)
+        );
+        mockDsc.transferOwnership(address(mockDsce));
+        // Arrange - User
+        vm.startPrank(user);
+        ERC20Mock(weth).approve(address(mockDsce), amountCollateral);
+
+        vm.expectRevert(SCDEngine.SCDEngine__MintFailed.selector);
+        mockDsce.depositCollateralAndMintSCD(weth, amountCollateral, amountToMint);
+        vm.stopPrank();
+    }
+
+        function testRevertsIfMintAmountIsZero() public {
+        vm.startPrank(user);
+        ERC20Mock(weth).approve(address(scde), amountCollateral);
+        scde.depositCollateralAndMintSCD(weth, amountCollateral, amountToMint);
+        vm.expectRevert(SCDEngine.SCDEngine__NeedsMoreThanZero.selector);
+        scde.mintSCD(0);
+        vm.stopPrank();
+    }
+
+    function testRevertsIfMintAmountBreaksHealthFactor() public {
+        // 0xe580cc6100000000000000000000000000000000000000000000000006f05b59d3b20000
+        // 0xe580cc6100000000000000000000000000000000000000000000003635c9adc5dea00000
+        (, int256 price,,,) = MockV3Aggregator(ethUsdPriceFeed).latestRoundData();
+        amountToMint = (amountCollateral * (uint256(price) * scde.getAdditionalFeedPrecision())) / scde.getPrecision();
+
+        vm.startPrank(user);
+        ERC20Mock(weth).approve(address(scde), amountCollateral);
+        scde.depositCollateral(weth, amountCollateral);
+
+        uint256 expectedHealthFactor =
+            scde.calculateHealthFactor(amountToMint, scde.getUsdValue(weth, amountCollateral));
+        vm.expectRevert(abi.encodeWithSelector(SCDEngine.SCDEngine__BreakHealthFactor.selector, expectedHealthFactor));
+        scde.mintSCD(amountToMint);
+        vm.stopPrank();
+    }
+
+
 }
