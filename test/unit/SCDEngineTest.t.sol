@@ -152,7 +152,7 @@ contract SCDEngineTest is StdCheats, Test {
     }
 
     ///////////////////////////////////////
-    // depositCollateralAndMintDsc Tests //
+    // DepositCollateralAndMintSCD Tests //
     ///////////////////////////////////////
 
     function testRevertsIfMintedDscBreaksHealthFactor() public {
@@ -182,7 +182,7 @@ contract SCDEngineTest is StdCheats, Test {
     }
 
     ///////////////////////////////////
-    // mintDsc Tests //////////////////
+    //minScd Tests //////////////////
     ///////////////////////////////////
     // This test needs it's own custom setup
     function testRevertsIfMintFails() public {
