@@ -65,7 +65,6 @@ contract SCDEngine is ReentrancyGuard {
     event CollateralDeposited(address indexed user, address indexed token, uint256 indexed amount);
     event CollateralRedeemed(address indexed redeemedFrom, uint256 indexed amountCollateral, address from, address to); // if from != to, then it was liquidated
 
-
     ///////////////////
     // Modifiers     //
     ///////////////////
@@ -117,14 +116,13 @@ contract SCDEngine is ReentrancyGuard {
         _burnScd(amountScdToBurn, msg.sender, msg.sender);
         _redeemCollateral(tokenCollateralAddress, amountCollateral, msg.sender, msg.sender);
         _revertIfHealthFactorIsBroken(msg.sender);
-
     }
 
     function redeemCollateral(address tokenCollateralAddress, uint256 amountCollateral, uint256 amountScdToBurn)
         public
         moreThanZero(amountCollateral)
         nonReentrant
-    {   
+    {
         _burnScd(amountScdToBurn, msg.sender, msg.sender);
         _redeemCollateral(tokenCollateralAddress, amountCollateral, msg.sender, msg.sender);
         _revertIfHealthFactorIsBroken(msg.sender);
@@ -135,7 +133,7 @@ contract SCDEngine is ReentrancyGuard {
         _revertIfHealthFactorIsBroken(msg.sender);
     }
 
-     function liquidate(address collateral, address user, uint256 debtToCover)
+    function liquidate(address collateral, address user, uint256 debtToCover)
         external
         moreThanZero(debtToCover)
         nonReentrant
@@ -146,7 +144,7 @@ contract SCDEngine is ReentrancyGuard {
         }
         uint256 tokenAmountFromDebtCovered = getTokenAmountFromUsd(collateral, debtToCover);
         uint256 bonusCollateral = (tokenAmountFromDebtCovered * LIQUIDATION_BONUS) / LIQUIDATION_PRECISION;
-        uint256 totalCollateralToRedeem = tokenAmountFromDebtCovered + bonusCollateral;
+        // uint256 totalCollateralToRedeem = tokenAmountFromDebtCovered + bonusCollateral;
         _redeemCollateral(collateral, tokenAmountFromDebtCovered + bonusCollateral, user, msg.sender);
         _burnScd(debtToCover, user, msg.sender);
 
@@ -157,14 +155,11 @@ contract SCDEngine is ReentrancyGuard {
         _revertIfHealthFactorIsBroken(msg.sender);
     }
 
-
     ///////////////////////
     // Public Functions //
     //////////////////////
 
-    function mintSCD(
-        uint256 amountSCDToMint 
-    ) public moreThanZero(amountSCDToMint) nonReentrant {
+    function mintSCD(uint256 amountSCDToMint) public moreThanZero(amountSCDToMint) nonReentrant {
         s_SCDMinted[msg.sender] += amountSCDToMint;
         _revertIfHealthFactorIsBroken(msg.sender);
         bool minted = i_SCDE.mint(msg.sender, amountSCDToMint);
@@ -174,7 +169,7 @@ contract SCDEngine is ReentrancyGuard {
         }
     }
 
-     function depositCollateral(address tokenCollateralAddress, uint256 amountCollateral)
+    function depositCollateral(address tokenCollateralAddress, uint256 amountCollateral)
         public
         moreThanZero(amountCollateral)
         isAllowedToken(tokenCollateralAddress)
@@ -195,7 +190,7 @@ contract SCDEngine is ReentrancyGuard {
     function _redeemCollateral(address tokenCollateralAddress, uint256 amountCollateral, address from, address to)
         private
     {
-         s_collateralDeposited[from][tokenCollateralAddress] -= amountCollateral;
+        s_collateralDeposited[from][tokenCollateralAddress] -= amountCollateral;
         emit CollateralRedeemed(from, amountCollateral, from, to);
         bool success = IERC20(tokenCollateralAddress).transfer(to, amountCollateral);
         if (!success) {
@@ -216,16 +211,6 @@ contract SCDEngine is ReentrancyGuard {
     // Private & Internal View Functions //
     ///////////////////////////////////////
 
-    function _calculateHealthFactor(uint256 totalDscMinted, uint256 collateralValueInUsd)
-        internal
-        pure
-        returns (uint256)
-    {
-        // if (totalDscMinted == 0) return type(uint256).max;
-        uint256 collateralAdjustedForThreshold = (collateralValueInUsd * LIQUIDATION_THRESHOLD) / 100;
-        return (collateralAdjustedForThreshold * 1e18) / totalDscMinted;
-    }
-
     function _getAccountInformation(address user)
         private
         view
@@ -236,16 +221,25 @@ contract SCDEngine is ReentrancyGuard {
     }
 
     function _healthFactor(address user) private view returns (uint256) {
-        (uint256 totalDscMinted, uint256 collateralValueInUsd) = _getAccountInformation(user);
-        return _calculateHealthFactor(totalDscMinted, collateralValueInUsd);
+        (uint256 totalScdMinted, uint256 collateralValueInUsd) = _getAccountInformation(user);
+        return _calculateHealthFactor(totalScdMinted, collateralValueInUsd);
     }
 
-     function _getUsdValue(address token, uint256 amount) private view returns (uint256) {
+    function _getUsdValue(address token, uint256 amount) private view returns (uint256) {
         AggregatorV3Interface priceFeed = AggregatorV3Interface(s_priceFeeds[token]);
         (, int256 price,,,) = priceFeed.staleCheckLatestRoundData();
         return ((uint256(price) * ADDITIONAL_FEED_PRECISION) * amount) / PRECISION;
     }
 
+    function _calculateHealthFactor(uint256 totalScdMinted, uint256 collateralValueInUsd)
+        internal
+        pure
+        returns (uint256)
+    {
+        if (totalScdMinted == 0) return type(uint256).max;
+        uint256 collateralAdjustedForThreshold = (collateralValueInUsd * LIQUIDATION_THRESHOLD) / 100;
+        return (collateralAdjustedForThreshold * 1e18) / totalScdMinted;
+    }
 
     function _revertIfHealthFactorIsBroken(address user) internal view {
         uint256 userHealthFactor = _healthFactor(user);
@@ -259,13 +253,13 @@ contract SCDEngine is ReentrancyGuard {
     // External & Public View & Pure Functions /////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////
-    
-    function calculateHealthFactor(uint256 totalDscMinted, uint256 collateralValueInUsd)
+
+    function calculateHealthFactor(uint256 totalScdMinted, uint256 collateralValueInUsd)
         external
         pure
         returns (uint256)
     {
-        return _calculateHealthFactor(totalDscMinted, collateralValueInUsd);
+        return _calculateHealthFactor(totalScdMinted, collateralValueInUsd);
     }
 
     function getAccountInformation(address user)
@@ -276,18 +270,18 @@ contract SCDEngine is ReentrancyGuard {
         (totalSCDMinted, collateralValueInUsd) = _getAccountInformation(user);
     }
 
-     function getUsdValue(
+    function getUsdValue(
         address token,
         uint256 amount // in WEI
     ) external view returns (uint256) {
         return _getUsdValue(token, amount);
     }
 
-     function getCollateralBalanceOfUser(address user, address token) external view returns (uint256) {
+    function getCollateralBalanceOfUser(address user, address token) external view returns (uint256) {
         return s_collateralDeposited[user][token];
     }
 
-     function getAccountCollateralValue(address user) public view returns (uint256 totalCollateralValueInUsd) {
+    function getAccountCollateralValue(address user) public view returns (uint256 totalCollateralValueInUsd) {
         for (uint256 index = 0; index < s_collateralTokens.length; index++) {
             address token = s_collateralTokens[index];
             uint256 amount = s_collateralDeposited[user][token];
@@ -338,4 +332,3 @@ contract SCDEngine is ReentrancyGuard {
         return _healthFactor(user);
     }
 }
-
