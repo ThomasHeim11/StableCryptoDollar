@@ -90,25 +90,25 @@ contract SCDEngineTest is StdCheats, Test {
         // Arrange - Setup
         address owner = msg.sender;
         vm.prank(owner);
-        MockFailedTransferFrom mockDsc = new MockFailedTransferFrom();
-        tokenAddresses = [address(mockDsc)];
+        MockFailedTransferFrom mockScd = new MockFailedTransferFrom();
+        tokenAddresses = [address(mockScd)];
         priceFeedAddresses = [ethUsdPriceFeed];
         vm.prank(owner);
-        SCDEngine mockDsce = new SCDEngine(
+        SCDEngine mockScde = new SCDEngine(
             tokenAddresses,
             priceFeedAddresses,
-            address(mockDsc)
+            address(mockScd)
         );
-        mockDsc.mint(user, amountCollateral);
+        mockScd.mint(user, amountCollateral);
 
         vm.prank(owner);
-        mockDsc.transferOwnership(address(mockDsce));
+        mockScd.transferOwnership(address(mockScde));
         // Arrange - User
         vm.startPrank(user);
-        ERC20Mock(address(mockDsc)).approve(address(mockDsce), amountCollateral);
+        ERC20Mock(address(mockScd)).approve(address(mockScde), amountCollateral);
         // Act / Assert
         vm.expectRevert(SCDEngine.SCDEngine__TransferFromFailed.selector);
-        mockDsce.depositCollateral(address(mockDsc), amountCollateral);
+        mockScde.depositCollateral(address(mockScd), amountCollateral);
         vm.stopPrank();
     }
 
@@ -187,23 +187,23 @@ contract SCDEngineTest is StdCheats, Test {
     // This test needs it's own custom setup
     function testRevertsIfMintFails() public {
         // Arrange - Setup
-        MockFailedMintSCD mockDsc = new MockFailedMintSCD();
+        MockFailedMintSCD mockScd= new MockFailedMintSCD();
         tokenAddresses = [weth];
         priceFeedAddresses = [ethUsdPriceFeed];
         address owner = msg.sender;
         vm.prank(owner);
-        SCDEngine mockDsce = new SCDEngine(
+        SCDEngine mockScde = new SCDEngine(
             tokenAddresses,
             priceFeedAddresses,
-            address(mockDsc)
+            address(mockScd)
         );
-        mockDsc.transferOwnership(address(mockDsce));
+        mockScd.transferOwnership(address(mockScde));
         // Arrange - User
         vm.startPrank(user);
-        ERC20Mock(weth).approve(address(mockDsce), amountCollateral);
+        ERC20Mock(weth).approve(address(mockScde), amountCollateral);
 
         vm.expectRevert(SCDEngine.SCDEngine__MintFailed.selector);
-        mockDsce.depositCollateralAndMintSCD(weth, amountCollateral, amountToMint);
+        mockScde.depositCollateralAndMintSCD(weth, amountCollateral, amountToMint);
         vm.stopPrank();
     }
 
@@ -217,8 +217,6 @@ contract SCDEngineTest is StdCheats, Test {
     }
 
     function testRevertsIfMintAmountBreaksHealthFactor() public {
-        // 0xe580cc6100000000000000000000000000000000000000000000000006f05b59d3b20000
-        // 0xe580cc6100000000000000000000000000000000000000000000003635c9adc5dea00000
         (, int256 price,,,) = MockV3Aggregator(ethUsdPriceFeed).latestRoundData();
         amountToMint = (amountCollateral * (uint256(price) * scde.getAdditionalFeedPrecision())) / scde.getPrecision();
 
@@ -242,7 +240,7 @@ contract SCDEngineTest is StdCheats, Test {
     }
 
     ///////////////////////////////////
-    // burnDsc Tests //
+    // burnSCD Tests //
     ///////////////////////////////////
 
     function testRevertsIfBurnAmountIsZero() public {
@@ -260,7 +258,7 @@ contract SCDEngineTest is StdCheats, Test {
         scde.burnSCD(1);
     }
 
-    function testCanBurnDsc() public depositedCollateralAndMintedDsc {
+    function testCanBurnScd() public depositedCollateralAndMintedDsc {
         vm.startPrank(user);
         scd.approve(address(scde), amountToMint);
         scde.burnSCD(amountToMint);
@@ -280,23 +278,23 @@ contract SCDEngineTest is StdCheats, Test {
         address owner = msg.sender;
         vm.prank(owner);
         MockFailedTransfer mockDsc = new MockFailedTransfer();
-        tokenAddresses = [address(mockDsc)];
+        tokenAddresses = [address(mockScd)];
         priceFeedAddresses = [ethUsdPriceFeed];
         vm.prank(owner);
-        SCDEngine mockDsce = new SCDEngine(
+        SCDEngine mockScde = new SCDEngine(
             tokenAddresses,
             priceFeedAddresses,
-            address(mockDsc)
+            address(mockScd)
         );
         mockDsc.mint(user, amountCollateral);
 
         vm.prank(owner);
-        mockDsc.transferOwnership(address(mockDsce));
+        mockDsc.transferOwnership(address(mockScde));
         // Arrange - User
         vm.startPrank(user);
-        ERC20Mock(address(mockDsc)).approve(address(mockDsce), amountCollateral);
+        ERC20Mock(address(mockScd)).approve(address(mockScde), amountCollateral);
         // Act / Assert
-        mockDsce.depositCollateral(address(mockDsc), amountCollateral);
+        mockScde.depositCollateral(address(mockDsc), amountCollateral);
         vm.expectRevert(SCDEngine.SCDEngine__TransferFromFailed.selector);
         mockDsce.redeemCollateral(address(mockDsc), amountCollateral);
         vm.stopPrank();
