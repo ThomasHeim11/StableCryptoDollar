@@ -8,5 +8,8 @@ import {DeeploySCD} from "../../script/DeploySCD.s.sol";
 import {SCDEngine} from "../../script/SCDEngine.s.sol";
 
 contract InvariantsTest is StdInvariant, Test {
-    function setUp() external {}
+    function setUp() external {
+        DeploySCD deployer;
+        
+    }
 }
