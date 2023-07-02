@@ -17,7 +17,7 @@ contract InvariantsTest is StdInvariant, Test {
 
     function setUp() external {
         deployer = new DeploySCD();
-        (scde = deployer.run();
+        (scd, scde, config) = deployer.run();
 
     }
 
