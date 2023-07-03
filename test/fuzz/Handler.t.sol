@@ -5,6 +5,7 @@ import {Test, console} from "forge-std/Test.sol";
 import {SCDEngine} from "../../src/SCDEngine.sol";
 import {StableCryptoDollar} from "../../src/StableCryptoDollar.sol";
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/ERC20Mock.sol";
+import {MockV3Aggregator} from "../mocks/MockV3Aggregator.sol";
 
 contract Handler is Test {
     SCDEngine scde;
@@ -15,6 +16,7 @@ contract Handler is Test {
 
     uint256 public timeMintCalled;
     address[] public userWithCollateralDeposited;
+    MockV3Aggregator public ethUsdPriceFeed;
 
     uint256 MAX_DEPOSIT_SIZE = type(uint96).max;
 
@@ -25,9 +27,14 @@ contract Handler is Test {
         address[] memory collateralTokens = scde.getCollateralTokens();
         weth = ERC20Mock(collateralTokens[0]);
         wbtc = ERC20Mock(collateralTokens[1]);
+
+        ethUsdPriceFeed = MockV3Aggregator(scde.getCollateralTokenPriceFeed(address(weth)));
     }
 
     function mintScd(uint256 amount, uint256 addressSeed) public {
+        if (userWithCollateralDeposited.length == 0) {
+            return;
+        }
         address sender = userWithCollateralDeposited[addressSeed % userWithCollateralDeposited.length];
         (uint256 totalScdMinted, uint256 collateralValueInUsd) = scde.getAccountInformation(sender);
 
