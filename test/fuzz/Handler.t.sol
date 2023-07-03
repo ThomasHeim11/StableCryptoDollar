@@ -14,6 +14,7 @@ contract Handler is Test {
     ERC20Mock wbtc;
 
     uint256 public timeMintCalled;
+    address[] public userWithCollateralDeposited;
 
     uint256 MAX_DEPOSIT_SIZE = type(uint96).max;
 
@@ -52,7 +53,7 @@ contract Handler is Test {
         collateral.approve(address(scde), amountCollateral);
         scde.depositCollateral(address(collateral), amountCollateral);
         vm.stopPrank();
-        timeMintCalled++;
+        timeMintCalled ++;
     }
 
     function redeemCollateral(uint256 collateralSeed, uint256 amountCollateral) public {
