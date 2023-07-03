@@ -7,7 +7,7 @@ import {StdInvariant} from "forge-std/StdInvariant.sol";
 import {DeploySCD} from "../../script/DeploySCD.s.sol";
 import {SCDEngine} from "../../src/SCDEngine.sol";
 import {StableCryptoDollar} from "../../src/StableCryptoDollar.sol";
-import {HelperConfig} from "../../script/HelperConfig.sol";
+import {HelperConfig} from "../../script/HelperConfig.s.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract InvariantsTest is StdInvariant, Test {
@@ -15,11 +15,14 @@ contract InvariantsTest is StdInvariant, Test {
     SCDEngine scde;
     StableCryptoDollar scd;
     HelperConfig config; 
+    address weth;
+    address wbtc;
+
 
     function setUp() external {
         deployer = new DeploySCD();
         (scd, scde, config) = deployer.run();
-        (,, weth, btc, ) = helperConfig.activeNetworkConfig();
+        (,, weth, wbtc, ) = config.activeNetworkConfig();
         targetContract(address(scde));
 
     }
