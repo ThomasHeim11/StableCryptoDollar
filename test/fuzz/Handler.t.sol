@@ -73,6 +73,12 @@ contract Handler is Test {
         scde.redeemCollateral(address(collateral), amountCollateral);
     }
 
+    function updateCollateral(uint96 newPrice) public {
+        int256 newPriceInt = int256(uint256(newPrice));
+        ethUsdPriceFeed.updateAnswer(newPriceInt);
+
+    }
+
     function _getCollateralFromSeed(uint256 collateralSeed) private view returns (ERC20Mock) {
         if (collateralSeed % 2 == 0) {
             return weth;
