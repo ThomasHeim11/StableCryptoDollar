@@ -9,6 +9,7 @@ import {SCDEngine} from "../../src/SCDEngine.sol";
 import {StableCryptoDollar} from "../../src/StableCryptoDollar.sol";
 import {HelperConfig} from "../../script/HelperConfig.s.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {Handler} from "./Handler.t.sol";
 
 contract Invariants is StdInvariant, Test {
     DeploySCD deployer;
@@ -17,13 +18,15 @@ contract Invariants is StdInvariant, Test {
     HelperConfig config; 
     address weth;
     address wbtc;
+    Handler handler;
 
 
     function setUp() external {
         deployer = new DeploySCD();
         (scd, scde, config) = deployer.run();
         (,, weth, wbtc, ) = config.activeNetworkConfig();
-        targetContract(address(scde));
+        handler = new Handler(scde, scd);
+        targetContract(address(handler));
 
     }
 

@@ -13,4 +13,8 @@ contract Handler is Test {
         scde = _scdEngine;
         scd = _scd;
     }
+
+    function depositCollateral(address collateral, uint256 amountCollateral) public {
+        scde.depositCollateral(collateral, amountCollateral);
+    }
 }
