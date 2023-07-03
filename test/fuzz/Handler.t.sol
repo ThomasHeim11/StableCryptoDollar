@@ -13,6 +13,8 @@ contract Handler is Test {
     ERC20Mock weth;
     ERC20Mock wbtc;
 
+    uint256 public timeMintCalled;
+
     uint256 MAX_DEPOSIT_SIZE = type(uint96).max;
 
     constructor(SCDEngine _scdEngine, StableCryptoDollar _scd) {
@@ -50,6 +52,7 @@ contract Handler is Test {
         collateral.approve(address(scde), amountCollateral);
         scde.depositCollateral(address(collateral), amountCollateral);
         vm.stopPrank();
+        timeMintCalled++;
     }
 
     function redeemCollateral(uint256 collateralSeed, uint256 amountCollateral) public {
