@@ -54,9 +54,13 @@ contract SCDEngine is ReentrancyGuard {
 
     uint256 private constant LIQUIDATION_PRECISION = 100;
 
+    /// @dev Mapping of token address to price feed address
     mapping(address token => address s_priceFeed) private s_priceFeeds;
+    /// @dev Amount of collateral deposited by user
     mapping(address user => mapping(address token => uint256)) private s_collateralDeposited;
+    /// @dev Amount of SCD minted by user
     mapping(address user => uint256 amountSCDEMinted) private s_SCDMinted;
+    /// @dev If we know exactly how many tokens we have, we could make this immutable!
     address[] private s_collateralTokens;
 
     //////////////////////
@@ -89,6 +93,8 @@ contract SCDEngine is ReentrancyGuard {
         if (tokenAddresses.length != priceFeedAddresses.length) {
             revert SCDEngine__TokenAddressAndPriceFeedAddressMustBeSameLength();
         }
+        // These feeds will be the USD pairs
+        // For example ETH / USD or MKR / USD
         for (uint256 i = 0; i < tokenAddresses.length; i++) {
             s_priceFeeds[tokenAddresses[i]] = priceFeedAddresses[i];
             s_collateralTokens.push(tokenAddresses[i]);
@@ -100,6 +106,13 @@ contract SCDEngine is ReentrancyGuard {
     // External Functions //
     ///////////////////////
 
+    /** 
+     * @param tokenCollateralAddress: The ERC20 token address of the collateral you're depositing
+     * @param amountCollateral: The amount of collateral you're depositing
+     * @param amountScdToMint: The amount of DSC you want to mint
+     * @notice This function will deposit your collateral and mint SCD in one transaction
+     */
+
     function depositCollateralAndMintSCD(
         address tokenCollateralAddress,
         uint256 amountCollateral,
@@ -109,6 +122,13 @@ contract SCDEngine is ReentrancyGuard {
         mintSCD(amountScdToMint);
     }
 
+    /**     
+     * @param tokenCollateralAddress: The ERC20 token address of the collateral you're depositing
+     * @param amountCollateral: The amount of collateral you're depositing
+     * @param amountScdToBurn: The amount of DSC you want to burn
+     * @notice This function will withdraw your collateral and burn DSC in one transaction
+     */
+
     function redeemCollateralForSCD(address tokenCollateralAddress, uint256 amountCollateral, uint256 amountScdToBurn)
         external
         moreThanZero(amountCollateral)
@@ -117,13 +137,18 @@ contract SCDEngine is ReentrancyGuard {
         _redeemCollateral(tokenCollateralAddress, amountCollateral, msg.sender, msg.sender);
         _revertIfHealthFactorIsBroken(msg.sender);
     }
-
+    
+    /*
+     * @param tokenCollateralAddress: The ERC20 token address of the collateral you're redeeming
+     * @param amountCollateral: The amount of collateral you're redeeming
+     * @notice This function will redeem your collateral.
+     * @notice If you have DSC minted, you will not be able to redeem until you burn your DSC
+     */
     function redeemCollateral(address tokenCollateralAddress, uint256 amountCollateral)
         public
         moreThanZero(amountCollateral)
         nonReentrant
     {
-        
         _redeemCollateral(tokenCollateralAddress, amountCollateral, msg.sender, msg.sender);
         _revertIfHealthFactorIsBroken(msg.sender);
     }
@@ -173,7 +198,6 @@ contract SCDEngine is ReentrancyGuard {
         moreThanZero(amountCollateral)
         nonReentrant
         isAllowedToken(tokenCollateralAddress)
-        
     {
         s_collateralDeposited[msg.sender][tokenCollateralAddress] += amountCollateral;
         emit CollateralDeposited(msg.sender, tokenCollateralAddress, amountCollateral);
