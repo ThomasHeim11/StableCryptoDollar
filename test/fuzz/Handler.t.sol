@@ -28,14 +28,14 @@ contract Handler is Test {
         vm.startPrank(msg.sender);
         (uint256 totalScdMinted, uint256 collateralValueInUsd) = scde.getAccountInformation(msg.sender);
 
-        int256 maxScdToMint = (int256(collateralValueInUsd / 2) - int256(totalScdMinted);
-        if(maxScdToMint < 0) {
+        int256 maxScdToMint = int256(collateralValueInUsd / 2) - int256(totalScdMinted);
+        if (maxScdToMint < 0) {
             return;
         }
-        amount = bound(amount, 0, uint256 (maxScdToMint));
-            if (amount == 0) {
-                return;
-            }
+        amount = bound(amount, 0, uint256(maxScdToMint));
+        if (amount == 0) {
+            return;
+        }
         vm.startPrank(msg.sender);
         scde.mintSCD(amount);
         vm.stopPrank();
