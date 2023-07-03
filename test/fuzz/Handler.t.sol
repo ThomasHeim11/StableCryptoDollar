@@ -18,7 +18,7 @@ contract Handler is Test {
     constructor(SCDEngine _scdEngine, StableCryptoDollar _scd) {
         scde = _scdEngine;
         scd = _scd;
-        
+
         address[] memory collateralTokens = scde.getCollateralTokens();
         weth = ERC20Mock(collateralTokens[0]);
         wbtc = ERC20Mock(collateralTokens[1]);
@@ -27,13 +27,24 @@ contract Handler is Test {
     function mintScd(uint256 amount) public {
         amount = bound(amount, 1, MAX_DEPOSIT_SIZE);
         vm.startPrank(msg.sender);
+        (uint256 totalScdMinted, uint256 collateralValueInUsd) = scde.getAccountInformation(msg.sender);
+        
+        int256 maxScdToMint = (collateralValueInUsd / 2) - totalScdMinted;
+        if(maxScdToMint < 0) {
+            return;
+        }
+        amount = bound(amount, 0, maxScdToMint);
+            if (amount == 0) {
+                return;
+            }
+        vm.startPrank(msg.sender);
         scde.mintSCD(amount);
         vm.stopPrank();
     }
 
-    function depositCollateral (uint256 collateralSeed, uint256 amountCollateral) public {
+    function depositCollateral(uint256 collateralSeed, uint256 amountCollateral) public {
         ERC20Mock collateral = _getCollateralFromSeed(collateralSeed);
-        amountCollateral = bound(amountCollateral, 1,MAX_DEPOSIT_SIZE);
+        amountCollateral = bound(amountCollateral, 1, MAX_DEPOSIT_SIZE);
 
         vm.startPrank(msg.sender);
         collateral.mint(msg.sender, amountCollateral);
@@ -44,8 +55,7 @@ contract Handler is Test {
 
     function redeemCollateral(uint256 collateralSeed, uint256 amountCollateral) public {
         ERC20Mock collateral = _getCollateralFromSeed(collateralSeed);
-        uint256 maxCollateralToReedem = scde.getCollateralBalanceOfUser(address
-        (collateral), msg.sender);
+        uint256 maxCollateralToReedem = scde.getCollateralBalanceOfUser(address(collateral), msg.sender);
         amountCollateral = bound(amountCollateral, 0, maxCollateralToReedem);
         if (amountCollateral == 0) {
             return;
@@ -53,8 +63,8 @@ contract Handler is Test {
         scde.redeemCollateral(address(collateral), amountCollateral);
     }
 
-    function _getCollateralFromSeed(uint256 collateralSeed) private view returns  (ERC20Mock) {
-        if(collateralSeed % 2 == 0) {
+    function _getCollateralFromSeed(uint256 collateralSeed) private view returns (ERC20Mock) {
+        if (collateralSeed % 2 == 0) {
             return weth;
         }
         return wbtc;
