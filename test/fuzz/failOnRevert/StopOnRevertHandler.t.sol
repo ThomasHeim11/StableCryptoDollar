@@ -50,29 +50,29 @@ contract StopOnRevertHandler is Test {
 
         vm.startPrank(msg.sender);
         collateral.mint(msg.sender, amountCollateral);
-        collateral.approve(address(dscEngine), amountCollateral);
-        dscEngine.depositCollateral(address(collateral), amountCollateral);
+        collateral.approve(address(scdEngine), amountCollateral);
+        scdEngine.depositCollateral(address(collateral), amountCollateral);
         vm.stopPrank();
     }
 
     function redeemCollateral(uint256 collateralSeed, uint256 amountCollateral) public {
         ERC20Mock collateral = _getCollateralFromSeed(collateralSeed);
-        uint256 maxCollateral = dscEngine.getCollateralBalanceOfUser(msg.sender, address(collateral));
+        uint256 maxCollateral = scdEngine.getCollateralBalanceOfUser(msg.sender, address(collateral));
 
         amountCollateral = bound(amountCollateral, 0, maxCollateral);
         if (amountCollateral == 0) {
             return;
         }
-        dscEngine.redeemCollateral(address(collateral), amountCollateral);
+        scdEngine.redeemCollateral(address(collateral), amountCollateral);
     }
 
-    function burnDsc(uint256 amountDsc) public {
+    function burnDsc(uint256 amountScd) public {
         // Must burn more than 0
-        amountDsc = bound(amountDsc, 0, dsc.balanceOf(msg.sender));
-        if (amountDsc == 0) {
+        amountScd = bound(amountScd, 0, scd.balanceOf(msg.sender));
+        if (amountScd == 0) {
             return;
         }
-        dscEngine.burnDsc(amountDsc);
+        scdEngine.burnSCD(amountScd);
     }
 
     // Only the DSCEngine can mint DSC!
@@ -83,14 +83,14 @@ contract StopOnRevertHandler is Test {
     // }
 
     function liquidate(uint256 collateralSeed, address userToBeLiquidated, uint256 debtToCover) public {
-        uint256 minHealthFactor = dscEngine.getMinHealthFactor();
-        uint256 userHealthFactor = dscEngine.getHealthFactor(userToBeLiquidated);
+        uint256 minHealthFactor = scdEngine.getMinHealthFactor();
+        uint256 userHealthFactor = scdEngine.getHealthFactor(userToBeLiquidated);
         if (userHealthFactor >= minHealthFactor) {
             return;
         }
         debtToCover = bound(debtToCover, 1, uint256(type(uint96).max));
         ERC20Mock collateral = _getCollateralFromSeed(collateralSeed);
-        dscEngine.liquidate(address(collateral), userToBeLiquidated, debtToCover);
+        scdEngine.liquidate(address(collateral), userToBeLiquidated, debtToCover);
     }
 
     /////////////////////////////
@@ -100,9 +100,9 @@ contract StopOnRevertHandler is Test {
         if (to == address(0)) {
             to = address(1);
         }
-        amountDsc = bound(amountDsc, 0, dsc.balanceOf(msg.sender));
+        amountDsc = bound(amountDsc, 0, scd.balanceOf(msg.sender));
         vm.prank(msg.sender);
-        dsc.transfer(to, amountDsc);
+        scd.transfer(to, amountDsc);
     }
 
     /////////////////////////////
@@ -111,7 +111,7 @@ contract StopOnRevertHandler is Test {
     function updateCollateralPrice(uint96 newPrice, uint256 collateralSeed) public {
         int256 intNewPrice = int256(uint256(newPrice));
         ERC20Mock collateral = _getCollateralFromSeed(collateralSeed);
-        MockV3Aggregator priceFeed = MockV3Aggregator(dscEngine.getCollateralTokenPriceFeed(address(collateral)));
+        MockV3Aggregator priceFeed = MockV3Aggregator(scdEngine.getCollateralTokenPriceFeed(address(collateral)));
 
         priceFeed.updateAnswer(intNewPrice);
     }
