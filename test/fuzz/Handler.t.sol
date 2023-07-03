@@ -20,13 +20,11 @@ contract Handler is Test {
         address[] memory collateralTokens = scde.getCollateralTokens();
         weth = ERC20Mock(collateralTokens[0]);
         wbtc = ERC20Mock(collateralTokens[1]);
-
-
     }
 
-    function depositCollateral (address collateralSeed, uint256 amountCollateral) public {
+    function depositCollateral (uint256 collateralSeed, uint256 amountCollateral) public {
         ERC20Mock collateral = _getCollateralFromSeed(collateralSeed);
-        scde.depositCollateral(address(collateralSeed), amountCollateral);
+        scde.depositCollateral(address(collateral), amountCollateral);
     }
 
     function _getCollateralFromSeed(uint256 collateralSeed) private view returns  (ERC20Mock) {
@@ -34,6 +32,5 @@ contract Handler is Test {
             return weth;
         }
         return wbtc;
-
     }
 }
