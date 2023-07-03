@@ -7,7 +7,13 @@
 
 # About
 
-This project is meant to be a stablecoin where users can deposit WETH and WBTC in exchange for a token that will be pegged to the USD.
+StableCrypto Dollar (SCD) is a decentralized, algorithmic stablecoin designed to maintain stability relative to the United States Dollar (USD). The contract, owned by DSCEngine, operates as an ERC20 token and enables users to mint and burn tokens through interaction with the DSCEngine smart contract.
+
+SCD's stability is ensured through a collateralization mechanism where users can deposit WETH (Wrapped Ether) and WBTC (Wrapped Bitcoin) in exchange for the stablecoin. These collateralized assets provide the necessary backing to maintain the peg to the USD, giving users confidence in the stability of the StableCrypto Dollar.
+
+As an algorithmic stablecoin, StableCrypto Dollar does not rely on a centralized entity to control its minting and burning processes. Instead, it employs an algorithmic approach, automatically adjusting the token supply based on demand and market conditions to maintain its peg to the USD.
+
+This design allows StableCrypto Dollar to be independent of traditional financial systems and provides a decentralized alternative for users seeking a stable store of value and medium of exchange within the cryptocurrency ecosystem. Users can leverage the stability and convenience of StableCrypto Dollar for various use cases such as trading, remittances, and as a hedging instrument in the volatile cryptocurrency market.
 
 - [Foundry DeFi Stablecoin](#foundry-defi-stablecoin)
 - [About](#about)
