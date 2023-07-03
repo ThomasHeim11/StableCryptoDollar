@@ -39,7 +39,10 @@ contract Handler is Test {
         ERC20Mock collateral = _getCollateralFromSeed(collateralSeed);
         uint256 maxCollateralToReedem = scde.getCollateralBalanceOfUser(address
         (collateral), msg.sender);
-        amountCollateral = bound(amountCollateral, 1, maxCollateralToReedem);
+        amountCollateral = bound(amountCollateral, 0, maxCollateralToReedem);
+        if (amountCollateral == 0) {
+            return;
+        }
         scde.redeemCollateral(address(collateral), amountCollateral);
     }
 
