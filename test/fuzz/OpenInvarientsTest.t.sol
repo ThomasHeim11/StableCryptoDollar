@@ -2,7 +2,7 @@
 pragma solidity 0.8.19;
 
 
-import {Test} from "forge-std/Test.sol";
+import {Test, console} from "forge-std/Test.sol";
 import {StdInvariant} from "forge-std/StdInvariant.sol";
 import {DeploySCD} from "../../script/DeploySCD.s.sol";
 import {SCDEngine} from "../../src/SCDEngine.sol";
@@ -34,6 +34,10 @@ contract InvariantsTest is StdInvariant, Test {
 
         uint256 wethValue = scde.getUsdValue(weth, totalWethDepositet);
         uint256 wbtcValue = scde.getUsdValue(wbtc, totalWbtcDepositet);
+
+        console.log("weth value", wethValue);
+        console.log("wbtc value", wbtcValue);
+        console.log("total supply", totalSupply);
 
         assert (wethValue + wbtcValue > totalSupply);
     }
