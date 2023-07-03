@@ -138,7 +138,7 @@ contract SCDEngine is ReentrancyGuard {
         _revertIfHealthFactorIsBroken(msg.sender);
     }
     
-    /*
+    /** 
      * @param tokenCollateralAddress: The ERC20 token address of the collateral you're redeeming
      * @param amountCollateral: The amount of collateral you're redeeming
      * @notice This function will redeem your collateral.
