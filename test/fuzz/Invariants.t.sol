@@ -10,7 +10,7 @@ import {StableCryptoDollar} from "../../src/StableCryptoDollar.sol";
 import {HelperConfig} from "../../script/HelperConfig.s.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-contract InvariantsTest is StdInvariant, Test {
+contract Invariants is StdInvariant, Test {
     DeploySCD deployer;
     SCDEngine scde;
     StableCryptoDollar scd;
