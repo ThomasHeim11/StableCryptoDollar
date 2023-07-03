@@ -27,9 +27,9 @@ contract Handler is Test {
         wbtc = ERC20Mock(collateralTokens[1]);
     }
 
-    function mintScd(uint256 amount) public {
-        vm.startPrank(msg.sender);
-        (uint256 totalScdMinted, uint256 collateralValueInUsd) = scde.getAccountInformation(msg.sender);
+    function mintScd(uint256 amount, uint256 addressSeed) public {
+        address sender = userWithCollateralDeposited[addressSeed % userWithCollateralDeposited.length];
+        (uint256 totalScdMinted, uint256 collateralValueInUsd) = scde.getAccountInformation(sender);
 
         int256 maxScdToMint = int256(collateralValueInUsd / 2) - int256(totalScdMinted);
         if (maxScdToMint < 0) {
@@ -39,7 +39,7 @@ contract Handler is Test {
         if (amount == 0) {
             return;
         }
-        vm.startPrank(msg.sender);
+        vm.startPrank(sender);
         scde.mintSCD(amount);
         vm.stopPrank();
     }
@@ -53,7 +53,7 @@ contract Handler is Test {
         collateral.approve(address(scde), amountCollateral);
         scde.depositCollateral(address(collateral), amountCollateral);
         vm.stopPrank();
-        timeMintCalled ++;
+        userWithCollateralDeposited.push(msg.sender);
     }
 
     function redeemCollateral(uint256 collateralSeed, uint256 amountCollateral) public {
