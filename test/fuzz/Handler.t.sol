@@ -25,7 +25,6 @@ contract Handler is Test {
     }
 
     function mintScd(uint256 amount) public {
-        amount = bound(amount, 1, MAX_DEPOSIT_SIZE);
         vm.startPrank(msg.sender);
         (uint256 totalScdMinted, uint256 collateralValueInUsd) = scde.getAccountInformation(msg.sender);
 
@@ -33,7 +32,7 @@ contract Handler is Test {
         if(maxScdToMint < 0) {
             return;
         }
-        amount = bound(amount, 0, maxScdToMint);
+        amount = bound(amount, 0, uint256 (maxScdToMint));
             if (amount == 0) {
                 return;
             }
