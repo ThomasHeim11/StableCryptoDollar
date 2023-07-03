@@ -28,8 +28,8 @@ contract Handler is Test {
         amount = bound(amount, 1, MAX_DEPOSIT_SIZE);
         vm.startPrank(msg.sender);
         (uint256 totalScdMinted, uint256 collateralValueInUsd) = scde.getAccountInformation(msg.sender);
-        
-        int256 maxScdToMint = (collateralValueInUsd / 2) - totalScdMinted;
+
+        int256 maxScdToMint = (int256(collateralValueInUsd / 2) - int256(totalScdMinted);
         if(maxScdToMint < 0) {
             return;
         }
