@@ -27,6 +27,15 @@ contract InvariantsTest is StdInvariant, Test {
 
     }
 
-    function invarient_protocolMustHaveMoreValueThanTotalSupply() public view {}
+    function invarient_protocolMustHaveMoreValueThanTotalSupply() public view {
+        uint256 totalSupply = scd.totalSupply();
+        uint256 totalWethDepositet = IERC20(weth).balanceOf(address(scde));
+        uint256 totalWbtcDepositet = IERC20(wbtc).balanceOf(address(scde));
+
+        uint256 wethValue = scde.wethValue(weth, totalWethDepositet);
+        uint256 wbtcValue = scde.wbtcValue(wbtc, totalWbtcDepositet);
+
+        assert (wethValue + wbtcValue > totalSupply);
+    }
 
 }
