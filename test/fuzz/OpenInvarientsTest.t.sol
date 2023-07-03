@@ -7,7 +7,8 @@ import {StdInvariant} from "forge-std/StdInvariant.sol";
 import {DeploySCD} from "../../script/DeploySCD.s.sol";
 import {SCDEngine} from "../../src/SCDEngine.sol";
 import {StableCryptoDollar} from "../../src/StableCryptoDollar.sol";
-import {HelperConfig} from "../../src/HelperConfig.sol";
+import {HelperConfig} from "../../script/HelperConfig.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract InvariantsTest is StdInvariant, Test {
     DeploySCD deployer;
@@ -18,7 +19,11 @@ contract InvariantsTest is StdInvariant, Test {
     function setUp() external {
         deployer = new DeploySCD();
         (scd, scde, config) = deployer.run();
+        (,, weth, btc, ) = helperConfig.activeNetworkConfig();
+        targetContract(address(scde));
 
     }
+
+    function invarient_protocolMustHaveMoreValueThanTotalSupply() public view {}
 
 }
