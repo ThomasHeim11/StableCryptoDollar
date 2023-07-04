@@ -106,7 +106,7 @@ contract SCDEngine is ReentrancyGuard {
     // External Functions //
     ///////////////////////
 
-    /** 
+    /*
      * @param tokenCollateralAddress: The ERC20 token address of the collateral you're depositing
      * @param amountCollateral: The amount of collateral you're depositing
      * @param amountScdToMint: The amount of DSC you want to mint
@@ -122,7 +122,7 @@ contract SCDEngine is ReentrancyGuard {
         mintSCD(amountScdToMint);
     }
 
-    /**     
+    /*   
      * @param tokenCollateralAddress: The ERC20 token address of the collateral you're depositing
      * @param amountCollateral: The amount of collateral you're depositing
      * @param amountScdToBurn: The amount of DSC you want to burn
@@ -137,8 +137,8 @@ contract SCDEngine is ReentrancyGuard {
         _redeemCollateral(tokenCollateralAddress, amountCollateral, msg.sender, msg.sender);
         _revertIfHealthFactorIsBroken(msg.sender);
     }
-    
-    /** 
+
+    /*
      * @param tokenCollateralAddress: The ERC20 token address of the collateral you're redeeming
      * @param amountCollateral: The amount of collateral you're redeeming
      * @notice This function will redeem your collateral.
@@ -152,8 +152,8 @@ contract SCDEngine is ReentrancyGuard {
         _redeemCollateral(tokenCollateralAddress, amountCollateral, msg.sender, msg.sender);
         _revertIfHealthFactorIsBroken(msg.sender);
     }
-    
-    /** 
+
+    /*
      * @notice careful! You'll burn your SCD here! Make sure you want to do this...
      * @dev you might want to use this if you're nervous you might get liquidated and want to just burn
      * you DSC but keep your collateral in.
@@ -162,7 +162,7 @@ contract SCDEngine is ReentrancyGuard {
         _burnScd(amount, msg.sender, msg.sender);
         _revertIfHealthFactorIsBroken(msg.sender);
     }
-    
+
     /*
      * @param collateral: The ERC20 token address of the collateral you're using to make the protocol solvent again.
      * This is collateral that you're going to take from the user who is insolvent.
@@ -200,7 +200,10 @@ contract SCDEngine is ReentrancyGuard {
     ///////////////////////
     // Public Functions //
     //////////////////////
-
+    /*
+     * @param amountSCDToMint: The amount of DSC you want to mint
+     * You can only mint DSC if you hav enough collateral
+     */
     function mintSCD(uint256 amountSCDToMint) public moreThanZero(amountSCDToMint) nonReentrant {
         s_SCDMinted[msg.sender] += amountSCDToMint;
         _revertIfHealthFactorIsBroken(msg.sender);
@@ -210,6 +213,10 @@ contract SCDEngine is ReentrancyGuard {
             revert SCDEngine__MintFailed();
         }
     }
+    /*
+     * @param tokenCollateralAddress: The ERC20 token address of the collateral you're depositing
+     * @param amountCollateral: The amount of collateral you're depositing
+     */
 
     function depositCollateral(address tokenCollateralAddress, uint256 amountCollateral)
         public
@@ -228,6 +235,13 @@ contract SCDEngine is ReentrancyGuard {
     ///////////////////////
     // Private Functions //
     //////////////////////
+    /**
+     * @dev Redeems collateral from a user's account and transfers it to a specified recipient.
+     * @param tokenCollateralAddress The address of the collateral token.
+     * @param amountCollateral The amount of collateral to redeem.
+     * @param from The address of the user whose collateral is being redeemed.
+     * @param to The address of the recipient who will receive the redeemed collateral.
+     */
 
     function _redeemCollateral(address tokenCollateralAddress, uint256 amountCollateral, address from, address to)
         private
@@ -240,6 +254,12 @@ contract SCDEngine is ReentrancyGuard {
         }
     }
 
+    /**
+     * @dev Burns a specified amount of SCD tokens from a user's account.
+     * @param amountScdToBurn The amount of SCD tokens to burn.
+     * @param onBehalfOf The address of the user on whose behalf the tokens are being burned.
+     * @param scdFrom The address from which the tokens will be transferred before burning.
+     */
     function _burnScd(uint256 amountScdToBurn, address onBehalfOf, address scdFrom) private {
         s_SCDMinted[onBehalfOf] -= amountScdToBurn;
         bool success = i_SCDE.transferFrom(scdFrom, address(this), amountScdToBurn);
@@ -253,6 +273,12 @@ contract SCDEngine is ReentrancyGuard {
     // Private & Internal View & Pure Functions //
     //////////////////////////////////////////////
 
+    /**
+     * @dev Retrieves account information for a given user.
+     * @param user The address of the user.
+     * @return totalSCDMinted The total amount of SCD tokens minted for the user.
+     * @return collateralValueInUsd The total value of collateral held by the user in USD.
+     */
     function _getAccountInformation(address user)
         private
         view
@@ -262,17 +288,34 @@ contract SCDEngine is ReentrancyGuard {
         collateralValueInUsd = getAccountCollateralValue(user);
     }
 
+    /**
+     * @dev Calculates the health factor for a given user.
+     * @param user The address of the user.
+     * @return The health factor of the user.
+     */
     function _healthFactor(address user) private view returns (uint256) {
         (uint256 totalScdMinted, uint256 collateralValueInUsd) = _getAccountInformation(user);
         return _calculateHealthFactor(totalScdMinted, collateralValueInUsd);
     }
 
+    /**
+     * @dev Retrieves the USD value of a specified token amount.
+     * @param token The address of the token.
+     * @param amount The amount of tokens to convert to USD.
+     * @return The USD value of the specified token amount.
+     */
     function _getUsdValue(address token, uint256 amount) private view returns (uint256) {
         AggregatorV3Interface priceFeed = AggregatorV3Interface(s_priceFeeds[token]);
         (, int256 price,,,) = priceFeed.staleCheckLatestRoundData();
         return ((uint256(price) * ADDITIONAL_FEED_PRECISION) * amount) / PRECISION;
     }
 
+    /**
+     * @dev Calculates the health factor for a given user based on the total minted SCD and collateral value in USD.
+     * @param totalScdMinted The total amount of SCD tokens minted for the user.
+     * @param collateralValueInUsd The total value of collateral held by the user in USD.
+     * @return The health factor of the user.
+     */
     function _calculateHealthFactor(uint256 totalScdMinted, uint256 collateralValueInUsd)
         internal
         pure
@@ -283,6 +326,10 @@ contract SCDEngine is ReentrancyGuard {
         return (collateralAdjustedForThreshold * 1e18) / totalScdMinted;
     }
 
+    /**
+     * @dev Reverts the transaction if the health factor of a user is below the minimum required threshold.
+     * @param user The address of the user.
+     */
     function _revertIfHealthFactorIsBroken(address user) internal view {
         uint256 userHealthFactor = _healthFactor(user);
         if (userHealthFactor < MIN_HEALTH_FACTOR) {
@@ -296,6 +343,13 @@ contract SCDEngine is ReentrancyGuard {
     ////////////////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////
 
+    /**
+     * @dev Calculates the health factor for a given set of parameters.
+     * @param totalScdMinted The total amount of SCD tokens minted.
+     * @param collateralValueInUsd The total value of collateral in USD.
+     * @return The health factor based on the given parameters.
+     */
+
     function calculateHealthFactor(uint256 totalScdMinted, uint256 collateralValueInUsd)
         external
         pure
@@ -303,6 +357,13 @@ contract SCDEngine is ReentrancyGuard {
     {
         return _calculateHealthFactor(totalScdMinted, collateralValueInUsd);
     }
+
+    /**
+     * @dev Retrieves account information for a given user.
+     * @param user The address of the user.
+     * @return totalSCDMinted The total amount of SCD tokens minted for the user.
+     * @return collateralValueInUsd The total value of collateral held by the user in USD.
+     */
 
     function getAccountInformation(address user)
         external
@@ -312,6 +373,12 @@ contract SCDEngine is ReentrancyGuard {
         (totalSCDMinted, collateralValueInUsd) = _getAccountInformation(user);
     }
 
+    /**
+     * @dev Retrieves the USD value of a specified token amount.
+     * @param token The address of the token.
+     * @param amount The amount of tokens to convert to USD.
+     * @return The USD value of the specified token amount.
+     */
     function getUsdValue(
         address token,
         uint256 amount // in WEI
@@ -319,10 +386,21 @@ contract SCDEngine is ReentrancyGuard {
         return _getUsdValue(token, amount);
     }
 
+    /**
+     * @dev Retrieves the collateral balance of a user for a specific token.
+     * @param user The address of the user.
+     * @param token The address of the collateral token.
+     * @return The balance of the specified collateral token for the user.
+     */
     function getCollateralBalanceOfUser(address user, address token) external view returns (uint256) {
         return s_collateralDeposited[user][token];
     }
 
+    /**
+     * @dev Calculates the total value of collateral held by a user in USD.
+     * @param user The address of the user.
+     * @return totalCollateralValueInUsd The total value of collateral held by the user in USD.
+     */
     function getAccountCollateralValue(address user) public view returns (uint256 totalCollateralValueInUsd) {
         for (uint256 index = 0; index < s_collateralTokens.length; index++) {
             address token = s_collateralTokens[index];
@@ -332,7 +410,13 @@ contract SCDEngine is ReentrancyGuard {
         return totalCollateralValueInUsd;
     }
 
-    function getTokenAmountFromUsd(address token, uint256 usdAmountInWei) public view returns (uint256) {
+    /**
+     * @dev Converts a specified USD amount into the equivalent token amount.
+     * @param token The address of the token.
+     * @param usdAmountInWei The USD amount to convert, in Wei.
+     * @return The equivalent token amount.
+     */
+     function getTokenAmountFromUsd(address token, uint256 usdAmountInWei) public view returns (uint256) {
         AggregatorV3Interface priceFeed = AggregatorV3Interface(s_priceFeeds[token]);
         (, int256 price,,,) = priceFeed.latestRoundData();
         return (usdAmountInWei * PRECISION) / (uint256(price) * ADDITIONAL_FEED_PRECISION);
