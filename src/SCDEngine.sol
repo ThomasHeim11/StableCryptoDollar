@@ -106,7 +106,7 @@ contract SCDEngine is ReentrancyGuard {
     // External Functions //
     ///////////////////////
 
-    /*
+    /** 
      * @param tokenCollateralAddress: The ERC20 token address of the collateral you're depositing
      * @param amountCollateral: The amount of collateral you're depositing
      * @param amountScdToMint: The amount of DSC you want to mint
@@ -122,7 +122,7 @@ contract SCDEngine is ReentrancyGuard {
         mintSCD(amountScdToMint);
     }
 
-    /*   
+    /**  
      * @param tokenCollateralAddress: The ERC20 token address of the collateral you're depositing
      * @param amountCollateral: The amount of collateral you're depositing
      * @param amountScdToBurn: The amount of DSC you want to burn
@@ -138,7 +138,7 @@ contract SCDEngine is ReentrancyGuard {
         _revertIfHealthFactorIsBroken(msg.sender);
     }
 
-    /*
+    /** 
      * @param tokenCollateralAddress: The ERC20 token address of the collateral you're redeeming
      * @param amountCollateral: The amount of collateral you're redeeming
      * @notice This function will redeem your collateral.
@@ -153,7 +153,7 @@ contract SCDEngine is ReentrancyGuard {
         _revertIfHealthFactorIsBroken(msg.sender);
     }
 
-    /*
+    /** 
      * @notice careful! You'll burn your SCD here! Make sure you want to do this...
      * @dev you might want to use this if you're nervous you might get liquidated and want to just burn
      * you DSC but keep your collateral in.
@@ -163,7 +163,7 @@ contract SCDEngine is ReentrancyGuard {
         _revertIfHealthFactorIsBroken(msg.sender);
     }
 
-    /*
+    /** 
      * @param collateral: The ERC20 token address of the collateral you're using to make the protocol solvent again.
      * This is collateral that you're going to take from the user who is insolvent.
      * In return, you have to burn your SCD to pay off their debt, but you don't pay off your own.
@@ -416,43 +416,83 @@ contract SCDEngine is ReentrancyGuard {
      * @param usdAmountInWei The USD amount to convert, in Wei.
      * @return The equivalent token amount.
      */
-     function getTokenAmountFromUsd(address token, uint256 usdAmountInWei) public view returns (uint256) {
+    function getTokenAmountFromUsd(address token, uint256 usdAmountInWei) public view returns (uint256) {
         AggregatorV3Interface priceFeed = AggregatorV3Interface(s_priceFeeds[token]);
         (, int256 price,,,) = priceFeed.latestRoundData();
         return (usdAmountInWei * PRECISION) / (uint256(price) * ADDITIONAL_FEED_PRECISION);
     }
 
+    /**
+     * @dev Retrieves the precision used in calculations.
+     * @return The precision value.
+     */
     function getPrecision() external pure returns (uint256) {
         return PRECISION;
     }
 
+    /**
+     * @dev Retrieves the additional feed precision used in calculations.
+     * @return The additional feed precision value.
+     */
     function getAdditionalFeedPrecision() external pure returns (uint256) {
         return ADDITIONAL_FEED_PRECISION;
     }
 
+    /**
+     * @dev Retrieves the liquidation threshold.
+     * @return The liquidation threshold value.
+     */
     function getLiquidationThreshold() external pure returns (uint256) {
         return LIQUIDATION_THRESHOLD;
     }
 
+    /**
+     * @dev Retrieves the liquidation bonus.
+     * @return The liquidation bonus value.
+     */
     function getLiquidationBonus() external pure returns (uint256) {
         return LIQUIDATION_BONUS;
     }
 
+    /**
+     * @dev Retrieves the minimum health factor required.
+     * @return The minimum health factor value.
+     */
     function getMinHealthFactor() external pure returns (uint256) {
         return MIN_HEALTH_FACTOR;
     }
 
+    /**
+     * @dev Retrieves the list of collateral tokens.
+     * @return An array of collateral token addresses.
+     */
     function getCollateralTokens() external view returns (address[] memory) {
         return s_collateralTokens;
     }
 
+    /**
+     * @dev Retrieves the address of the Debt Token (SCD).
+     * @return The address of the SCD contract.
+     */
     function getDsc() external view returns (address) {
         return address(i_SCDE);
     }
 
+    /**
+     * @dev Retrieves the price feed contract address for a specified collateral token.
+     * @param token The address of the collateral token.
+     * @return The address of the price feed contract.
+     */
+
     function getCollateralTokenPriceFeed(address token) external view returns (address) {
         return s_priceFeeds[token];
     }
+
+    /**
+     * @dev Retrieves the health factor for a given user.
+     * @param user The address of the user.
+     * @return The health factor of the user.
+     */
 
     function getHealthFactor(address user) external view returns (uint256) {
         return _healthFactor(user);
