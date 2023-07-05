@@ -8,7 +8,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {StableCryptoDollar} from "./StableCryptoDollar.sol";
 
 /**
- * @title DSCEngine
+ * @title SCDEngine
  * @author Thomas Heim
  * @notice The SCDEngine contract serves as the core component of the Decentralized Stablecoin system.
  * It is designed to maintain a 1 token == $1 peg at all times, providing stability and functioning as a stablecoin.
@@ -93,8 +93,6 @@ contract SCDEngine is ReentrancyGuard {
         if (tokenAddresses.length != priceFeedAddresses.length) {
             revert SCDEngine__TokenAddressAndPriceFeedAddressMustBeSameLength();
         }
-        // These feeds will be the USD pairs
-        // For example ETH / USD or MKR / USD
         for (uint256 i = 0; i < tokenAddresses.length; i++) {
             s_priceFeeds[tokenAddresses[i]] = priceFeedAddresses[i];
             s_collateralTokens.push(tokenAddresses[i]);
@@ -109,7 +107,7 @@ contract SCDEngine is ReentrancyGuard {
     /**
      * @param tokenCollateralAddress: The ERC20 token address of the collateral you're depositing
      * @param amountCollateral: The amount of collateral you're depositing
-     * @param amountScdToMint: The amount of DSC you want to mint
+     * @param amountScdToMint: The amount of SCD you want to mint
      * @notice This function will deposit your collateral and mint SCD in one transaction
      */
 
@@ -125,8 +123,8 @@ contract SCDEngine is ReentrancyGuard {
     /**
      * @param tokenCollateralAddress: The ERC20 token address of the collateral you're depositing
      * @param amountCollateral: The amount of collateral you're depositing
-     * @param amountScdToBurn: The amount of DSC you want to burn
-     * @notice This function will withdraw your collateral and burn DSC in one transaction
+     * @param amountScdToBurn: The amount of SCD you want to burn
+     * @notice This function will withdraw your collateral and burn SCD in one transaction
      */
 
     function redeemCollateralForSCD(address tokenCollateralAddress, uint256 amountCollateral, uint256 amountScdToBurn)
@@ -142,7 +140,7 @@ contract SCDEngine is ReentrancyGuard {
      * @param tokenCollateralAddress: The ERC20 token address of the collateral you're redeeming
      * @param amountCollateral: The amount of collateral you're redeeming
      * @notice This function will redeem your collateral.
-     * @notice If you have DSC minted, you will not be able to redeem until you burn your DSC
+     * @notice If you have SCD minted, you will not be able to redeem until you burn your SCD.
      */
     function redeemCollateral(address tokenCollateralAddress, uint256 amountCollateral)
         public
@@ -156,7 +154,7 @@ contract SCDEngine is ReentrancyGuard {
     /**
      * @notice careful! You'll burn your SCD here! Make sure you want to do this...
      * @dev you might want to use this if you're nervous you might get liquidated and want to just burn
-     * you DSC but keep your collateral in.
+     * you SCD but keep your collateral in.
      */
     function burnSCD(uint256 amount) public moreThanZero(amount) {
         _burnScd(amount, msg.sender, msg.sender);
@@ -167,7 +165,7 @@ contract SCDEngine is ReentrancyGuard {
      * @notice Liquidates an insolvent user by taking their collateral and burning SCD to pay off their debt.
      * @param collateral The ERC20 token address of the collateral being used to make the protocol solvent again.
      * @param user The user who is insolvent and needs to be liquidated.
-     * @param debtToCover The amount of DSC (debt) to burn in order to cover the user's debt.
+     * @param debtToCover The amount of SCD (debt) to burn in order to cover the user's debt.
      *
      * @dev This function can partially liquidate a user.
      * @dev The liquidator receives a 10% LIQUIDATION_BONUS for taking the user's funds.
@@ -202,9 +200,9 @@ contract SCDEngine is ReentrancyGuard {
     ///////////////////////
     // Public Functions //
     //////////////////////
-    /** 
-     * @param amountSCDToMint: The amount of DSC you want to mint
-     * You can only mint DSC if you hav enough collateral
+    /**
+     * @param amountSCDToMint: The amount of SCD you want to mint
+     * You can only mint SCD if you hav enough collateral
      */
     function mintSCD(uint256 amountSCDToMint) public moreThanZero(amountSCDToMint) nonReentrant {
         s_SCDMinted[msg.sender] += amountSCDToMint;
@@ -215,7 +213,7 @@ contract SCDEngine is ReentrancyGuard {
             revert SCDEngine__MintFailed();
         }
     }
-    /** 
+    /**
      * @param tokenCollateralAddress: The ERC20 token address of the collateral you're depositing
      * @param amountCollateral: The amount of collateral you're depositing
      */
@@ -476,7 +474,7 @@ contract SCDEngine is ReentrancyGuard {
      * @dev Retrieves the address of the Debt Token (SCD).
      * @return The address of the SCD contract.
      */
-    function getDsc() external view returns (address) {
+    function getScd() external view returns (address) {
         return address(i_SCDE);
     }
 
