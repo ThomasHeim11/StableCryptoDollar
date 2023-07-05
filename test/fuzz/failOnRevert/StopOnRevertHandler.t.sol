@@ -41,7 +41,7 @@ contract StopOnRevertHandler is Test {
     // FUNCTOINS TO INTERACT WITH
 
     ///////////////
-    // DSCEngine //
+    // SCDEngine //
     ///////////////
     function mintAndDepositCollateral(uint256 collateralSeed, uint256 amountCollateral) public {
         // must be more than 0
@@ -66,7 +66,7 @@ contract StopOnRevertHandler is Test {
         scdEngine.redeemCollateral(address(collateral), amountCollateral);
     }
 
-    function burnDsc(uint256 amountScd) public {
+    function burnScd(uint256 amountScd) public {
         // Must burn more than 0
         amountScd = bound(amountScd, 0, scd.balanceOf(msg.sender));
         if (amountScd == 0) {
@@ -75,11 +75,11 @@ contract StopOnRevertHandler is Test {
         scdEngine.burnSCD(amountScd);
     }
 
-    // Only the DSCEngine can mint DSC!
-    // function mintDsc(uint256 amountDsc) public {
-    //     amountDsc = bound(amountDsc, 0, MAX_DEPOSIT_SIZE);
-    //     vm.prank(dsc.owner());
-    //     dsc.mint(msg.sender, amountDsc);
+    // Only the SCDEngine can mint SCD!
+    // function mintScd(uint256 amountScd) public {
+    //     amountScd = bound(amountScd, 0, MAX_DEPOSIT_SIZE);
+    //     vm.prank(scde.owner());
+    //     scd.mint(msg.sender, amountScd);
     // }
 
     function liquidate(uint256 collateralSeed, address userToBeLiquidated, uint256 debtToCover) public {
@@ -96,13 +96,13 @@ contract StopOnRevertHandler is Test {
     /////////////////////////////
     // DecentralizedStableCoin //
     /////////////////////////////
-    function transferDsc(uint256 amountDsc, address to) public {
+    function transferScd(uint256 amountScd, address to) public {
         if (to == address(0)) {
             to = address(1);
         }
-        amountDsc = bound(amountDsc, 0, scd.balanceOf(msg.sender));
+        amountScd = bound(amountScd, 0, scd.balanceOf(msg.sender));
         vm.prank(msg.sender);
-        scd.transfer(to, amountDsc);
+        scd.transfer(to, amountScd);
     }
 
     /////////////////////////////

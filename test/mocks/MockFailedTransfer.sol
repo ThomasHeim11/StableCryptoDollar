@@ -16,7 +16,7 @@ contract MockFailedTransfer is ERC20Burnable, Ownable {
     /**
      * @dev Constructor that sets the name and symbol of the token.
      */
-    constructor() ERC20("DecentralizedStableCoin", "DSC") {}
+    constructor() ERC20("StableCryptoDollar", "SCD") {}
 
     /**
      * @dev Burns a specific amount of tokens.

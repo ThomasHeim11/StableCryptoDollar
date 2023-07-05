@@ -13,7 +13,7 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
  * @notice Value (Relative Stability): Anchored (Pegged to USD)
  * @notice Collateral Type: Crypto
  *
- * @dev This is the contract meant to be owned by DSCEngine. It is an ERC20 token that can be minted and burned by the DSCEngine smart contract.
+ * @dev This is the contract meant to be owned by SCDEngine. It is an ERC20 token that can be minted and burned by the SCDEngine smart contract.
  */
 contract StableCryptoDollar is ERC20Burnable, Ownable {
     error StableCryptoDollar__AmountMustBeMoreThanZero();
