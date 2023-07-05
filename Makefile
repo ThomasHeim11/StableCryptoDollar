@@ -44,4 +44,3 @@ endif
 deploy:
 	@forge script script/DeploySCD.s.sol:DeploySCD $(NETWORK_ARGS)
 
-.
