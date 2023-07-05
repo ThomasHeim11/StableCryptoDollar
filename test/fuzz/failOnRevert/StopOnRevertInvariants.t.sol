@@ -65,7 +65,7 @@ contract StopOnRevertInvariants is StdInvariant, Test {
         scde.getLiquidationThreshold();
         scde.getMinHealthFactor();
         scde.getPrecision();
-        scde.getDsc();
+        scde.getsScd();
         // dsce.getTokenAmountFromUsd();
         // dsce.getCollateralTokenPriceFeed();
         // dsce.getCollateralBalanceOfUser();

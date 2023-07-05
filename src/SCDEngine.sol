@@ -381,7 +381,7 @@ contract SCDEngine is ReentrancyGuard {
      */
     function getUsdValue(
         address token,
-        uint256 amount // in WEI
+        uint256 amount 
     ) external view returns (uint256) {
         return _getUsdValue(token, amount);
     }
