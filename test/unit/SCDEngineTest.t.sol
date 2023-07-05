@@ -155,7 +155,7 @@ contract SCDEngineTest is StdCheats, Test {
     // DepositCollateralAndMintSCD Tests //
     ///////////////////////////////////////
 
-    function testRevertsIfMintedDscBreaksHealthFactor() public {
+    function testRevertsIfMintedScdBreaksHealthFactor() public {
         (, int256 price,,,) = MockV3Aggregator(ethUsdPriceFeed).latestRoundData();
         amountToMint = (amountCollateral * (uint256(price) * scde.getAdditionalFeedPrecision())) / scde.getPrecision();
         vm.startPrank(user);
@@ -168,7 +168,7 @@ contract SCDEngineTest is StdCheats, Test {
         vm.stopPrank();
     }
 
-    modifier depositedCollateralAndMintedDsc() {
+    modifier depositedCollateralAndMinteScd() {
         vm.startPrank(user);
         ERC20Mock(weth).approve(address(scde), amountCollateral);
         scde.depositCollateralAndMintSCD(weth, amountCollateral, amountToMint);
@@ -176,7 +176,7 @@ contract SCDEngineTest is StdCheats, Test {
         _;
     }
 
-    function testCanMintWithDepositedCollateral() public depositedCollateralAndMintedDsc {
+    function testCanMintWithDepositedCollateral() public depositedCollateralAndMintedScd {
         uint256 userBalance = scd.balanceOf(user);
         assertEq(userBalance, amountToMint);
     }
@@ -231,7 +231,7 @@ contract SCDEngineTest is StdCheats, Test {
         vm.stopPrank();
     }
 
-    function testCanMintDsc() public depositedCollateral {
+    function testCanMinedScd() public depositedCollateral {
         vm.prank(user);
         scde.mintSCD(amountToMint);
 
@@ -258,7 +258,7 @@ contract SCDEngineTest is StdCheats, Test {
         scde.burnSCD(1);
     }
 
-    function testCanBurnScd() public depositedCollateralAndMintedDsc {
+    function testCanBurnScd() public depositedCollateralAndMintedScd {
         vm.startPrank(user);
         scd.approve(address(scde), amountToMint);
         scde.burnSCD(amountToMint);
@@ -318,10 +318,10 @@ contract SCDEngineTest is StdCheats, Test {
     }
 
     ///////////////////////////////////
-    // redeemCollateralForDsc Tests  //
+    // redeemCollateralForScd Tests  //
     //////////////////////////////////
 
-    function testMustRedeemMoreThanZero() public depositedCollateralAndMintedDsc {
+    function testMustRedeemMoreThanZero() public depositedCollateralAndMintedScd {
         vm.startPrank(user);
         scd.approve(address(scde), amountToMint);
         vm.expectRevert(SCDEngine.SCDEngine__NeedsMoreThanZero.selector);
@@ -345,13 +345,13 @@ contract SCDEngineTest is StdCheats, Test {
     // healthFactor Tests //
     ////////////////////////
 
-    function testProperlyReportsHealthFactor() public depositedCollateralAndMintedDsc {
+    function testProperlyReportsHealthFactor() public depositedCollateralAndMintedScd {
         uint256 expectedHealthFactor = 100 ether;
         uint256 healthFactor = scde.getHealthFactor(user);
         assertEq(healthFactor, expectedHealthFactor);
     }
 
-    function testHealthFactorCanGoBelowOne() public depositedCollateralAndMintedDsc {
+    function testHealthFactorCanGoBelowOne() public depositedCollateralAndMintedScd {
         int256 ethUsdUpdatedPrice = 18e8;
         MockV3Aggregator(ethUsdPriceFeed).updateAnswer(ethUsdUpdatedPrice);
         uint256 userHealthFactor = scde.getHealthFactor(user);
@@ -445,13 +445,13 @@ contract SCDEngineTest is StdCheats, Test {
     }
 
     function testLiquidatorTakesOnUsersDebt() public liquidated {
-        (uint256 liquidatorDscMinted,) = scde.getAccountInformation(liquidator);
-        assertEq(liquidatorDscMinted, amountToMint);
+        (uint256 liquidatorScdMinted,) = scde.getAccountInformation(liquidator);
+        assertEq(liquidatorScdMinted, amountToMint);
     }
 
     function testUserHasNoMoreDebt() public liquidated {
-        (uint256 userDscMinted,) = scde.getAccountInformation(user);
-        assertEq(userDscMinted, 0);
+        (uint256 userScdMinted,) = scde.getAccountInformation(user);
+        assertEq(userScdMinted, 0);
     }
 
     ///////////////////////////////////
@@ -502,8 +502,8 @@ contract SCDEngineTest is StdCheats, Test {
         assertEq(collateralValue, expectedCollateralValue);
     }
 
-    function testGetDsc() public {
-        address dscAddress = scde.getDsc();
-        assertEq(dscAddress, address(scd));
+    function testGetScd() public {
+        address scdAddress = scde.getScd();
+        assertEq(scdAddress, address(scd));
     }
 }
