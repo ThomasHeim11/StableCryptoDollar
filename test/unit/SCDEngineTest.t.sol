@@ -178,7 +178,7 @@ contract SCDEngineTest is StdCheats, Test {
 
     function testCanMintWithDepositedCollateral() public depositedCollateralAndMintedScd {
         uint256 userBalance = scd.balanceOf(user);
-        assertEq(userBalance, amountToMint);
+        assertEq(userBalance, amountToMint);f
     }
 
     ///////////////////////////////////
