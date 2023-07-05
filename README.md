@@ -1,6 +1,8 @@
 # StableCryptoDollar
 This project is meant to be a stablecoin where users can deposit WETH and WBTC in exchange for a token that will be pegged to the USD.
 
+![GITHUB SCD](https://github.com/ThomasHeim11/StableCryptoDollar/assets/106417552/8c7740e4-72d6-447b-b355-ae17e0a6cd2c)
+
 - [About](#about)
 - [Getting Started](#getting-started)
   - [Requirements](#requirements)
