@@ -10,7 +10,7 @@ import {MockV3Aggregator} from "./MockV3Aggregator.sol";
 /**
  * @title StableCryptoDollar
  * @dev This contract represents a decentralized stablecoin that is collateralized by crypto assets. It is an ERC20 token
- *      that can be minted and burned by the DSCEngine smart contract.
+ *      that can be minted and burned by the SCDEngine smart contract.
  */
 
 contract MockMoreDebtSCD is ERC20Burnable, Ownable {
