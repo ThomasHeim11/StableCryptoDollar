@@ -168,7 +168,7 @@ contract SCDEngineTest is StdCheats, Test {
         vm.stopPrank();
     }
 
-    modifier depositedCollateralAndMinteScd() {
+    modifier depositedCollateralAndMintedScd() {
         vm.startPrank(user);
         ERC20Mock(weth).approve(address(scde), amountCollateral);
         scde.depositCollateralAndMintSCD(weth, amountCollateral, amountToMint);
@@ -178,7 +178,7 @@ contract SCDEngineTest is StdCheats, Test {
 
     function testCanMintWithDepositedCollateral() public depositedCollateralAndMintedScd {
         uint256 userBalance = scd.balanceOf(user);
-        assertEq(userBalance, amountToMint);f
+        assertEq(userBalance, amountToMint);
     }
 
     ///////////////////////////////////
@@ -187,7 +187,7 @@ contract SCDEngineTest is StdCheats, Test {
     // This test needs it's own custom setup
     function testRevertsIfMintFails() public {
         // Arrange - Setup
-        MockFailedMintSCD mockScd= new MockFailedMintSCD();
+        MockFailedMintSCD mockScd = new MockFailedMintSCD();
         tokenAddresses = [weth];
         priceFeedAddresses = [ethUsdPriceFeed];
         address owner = msg.sender;
