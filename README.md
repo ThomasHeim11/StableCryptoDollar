@@ -174,9 +174,6 @@ To run code formatting:
 forge fmt
 ```
 
-
-# Thank you!
-
 # Thank you!
 
 If you appreciated this, feel free to follow !
