@@ -4,8 +4,8 @@ This project is meant to be a stablecoin where users can deposit WETH and WBTC i
 
 The deployd smart contracts to the sepolia testnet:
 [SCDEngine](https://sepolia.etherscan.io/address/0xbf30bfa6694e586081f71137ad1ce871dc849716#code)
-[StableCryptoDollar](https://sepolia.etherscan.io/address/0xf30021646269007b0bdc0763fd736c6380602f2f#code)
-![](https://sepolia.etherscan.io/address/0xba1fea17c9781ea519424dc68ef843ba996076a2#code)
+[StableCryptoDollar](https://sepolia.etherscan.io/address/0xba1fea17c9781ea519424dc68ef843ba996076a2#code)
+
 
 
 ![GITHUB SCD](https://github.com/ThomasHeim11/StableCryptoDollar/assets/106417552/8c7740e4-72d6-447b-b355-ae17e0a6cd2c)
